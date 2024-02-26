@@ -23,7 +23,7 @@ def get_coordinates(address):
         result = data['results'][0]
         if 'position' in result:
             coordinates = result['position']
-            return coordinates.get('latitude'), coordinates.get('longitude')
+            return coordinates.get('lat'), coordinates.get('lon')
         else:
             print(f"Error getting coordinates for {address}: 'position' key not found in the response.")
             return None

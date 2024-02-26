@@ -1,0 +1,117 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ride Request - Success</title>
+    <link rel="stylesheet" href="{% static 'maps/css/styles.css' %}">
+    <!-- Include TomTom Map SDK -->
+    <link rel="stylesheet" type="text/css" href="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps.css" />
+    <script type="text/javascript" src="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps-web.min.js"></script>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="map-container" id="dynamic-map"></div>
+    </div>
+
+    <!-- Map Initialization Script -->
+    <script type="text/javascript">
+        var map;
+        var pickup_lon = {{ pickup_lon }};
+        var pickup_lat = {{ pickup_lat }};
+        var drop_lon = {{ drop_lon }};
+        var drop_lat = {{ drop_lat }};
+        var routeGeometry = {{ route_data.route_geometry|safe }};
+
+        console.log('Pickup Longitude:', pickup_lon);
+        console.log('Pickup Latitude:', pickup_lat);
+        console.log('Drop Longitude:', drop_lon);
+        console.log('Drop Latitude:', drop_lat);
+        console.log('Route Geometry:', routeGeometry);
+
+        function initMap() {
+            let center = [(pickup_lat + drop_lat) / 2, (pickup_lon + drop_lon) / 2];
+            map = tt.map({
+                key: 'XMnfj9I0Mi7gwOGlLf6MMjGGBTvzIIh6',
+                container: 'dynamic-map',
+                center: center,
+                //zoom: 14,
+            });
+
+            map.on('load', () => {
+                console.log('Map loaded successfully!');
+                var pickupMarker = new tt.Marker().setLngLat([pickup_lon, pickup_lat]).addTo(map);
+                var dropMarker = new tt.Marker().setLngLat([drop_lon, drop_lat]).addTo(map);
+
+                try {
+                    // Check if the routeGeometry is a valid GeoJSON object
+                    if (isValidGeoJSON(routeGeometry)) {
+                        map.addLayer({
+                            'id': 'route',
+                            'type': 'line',
+                            'source': {
+                                'type': 'geojson',
+                                'data': routeGeometry,
+                            },
+                            'layout': {
+                                'line-join': 'round',
+                                'line-cap': 'round',
+                            },
+                            'paint': {
+                                'line-color': '#3887be',
+                                'line-width': 8,
+                                'line-opacity': 0.8,
+                            },
+                        });
+                    } else {
+                        console.error('Invalid GeoJSON format. Creating a simple LineString.');
+
+                        // Attempt to create a LineString GeoJSON
+                        var coordinates = [[pickup_lon, pickup_lat], [drop_lon, drop_lat]];
+                        routeGeometry = {
+                            type: 'Feature',
+                            geometry: {
+                                type: 'LineString',
+                                coordinates: coordinates,
+                            },
+                        };
+
+                        map.addLayer({
+                            'id': 'route',
+                            'type': 'line',
+                            'source': {
+                                'type': 'geojson',
+                                'data': routeGeometry,
+                            },
+                            'layout': {
+                                'line-join': 'round',
+                                'line-cap': 'round',
+                            },
+                            'paint': {
+                                'line-color': '#3887be',
+                                'line-width': 8,
+                                'line-opacity': 0.8,
+                            },
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error handling GeoJSON:', error);
+                }
+            });
+        }
+
+        function isValidGeoJSON(data) {
+            return typeof data === 'object' && data !== null && data.type === 'Feature';
+        }
+
+        initMap();
+    </script>
+
+</body>
+
+</html>

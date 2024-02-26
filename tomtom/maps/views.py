@@ -26,7 +26,7 @@ def ride_request(request):
                     ride.save()
 
                     # Redirect to a success page or handle as needed
-                    return redirect('success_page')
+                    return redirect('success_page', pickup_lon=ride.pickup_longitude, pickup_lat=ride.pickup_latitude, drop_lon=ride.drop_longitude, drop_lat=ride.drop_latitude)
                 except IntegrityError as e:
                     # Handle IntegrityError, for example, duplicate entries
                     messages.error(request, 'IntegrityError: {}'.format(str(e)))
@@ -37,6 +37,93 @@ def ride_request(request):
         form = RideForm()
 
     return render(request, 'maps/ride_request.html', {'form': form})
+
+def success_page(request, pickup_lon, pickup_lat, drop_lon, drop_lat):
+    # Convert parameters to float
+    pickup_lon = float(pickup_lon)
+    pickup_lat = float(pickup_lat)
+    drop_lon = float(drop_lon)
+    drop_lat = float(drop_lat)
+
+    # Call a function to get the route data
+    route_data = get_route_data(pickup_lon, pickup_lat, drop_lon, drop_lat)
+
+    return render(request, 'maps/success_page.html', {
+        'pickup_lon': pickup_lon,
+        'pickup_lat': pickup_lat,
+        'drop_lon': drop_lon,
+        'drop_lat': drop_lat,
+        'route_data': route_data,
+    })
+import requests
+
+def get_route_data(pickup_lon, pickup_lat, drop_lon, drop_lat):
+    # Replace 'YOUR_API_KEY' with your actual TomTom API key
+    api_key = 'XMnfj9I0Mi7gwOGlLf6MMjGGBTvzIIh6'
+
+    # TomTom Routing API endpoint
+    routing_api_url = 'https://api.tomtom.com/routing/1/calculateRoute/{},{}:{},{}/json'.format(
+        pickup_lat, pickup_lon, drop_lat, drop_lon
+    )
+
+    # Parameters for the API request
+    params = {
+        'key': api_key,
+        'computeBestOrder': 'true',  # Optional: Calculate the best order for the waypoints
+        'maxAlternatives': 0,       # Optional: Number of alternative routes
+    }
+
+    # Make the API request
+    response = requests.get(routing_api_url, params=params)
+
+    # Check if the request was successful (status code 200)
+    if response.status_code == 200:
+        # Parse the JSON response
+        data = response.json()
+
+        # Check if 'routes' is present in the response
+        if 'routes' in data and data['routes']:
+            route = data['routes'][0]
+
+            # Check if 'legs' is present in the route
+            if 'legs' in route and route['legs']:
+                leg = route['legs'][0]
+
+                # Check if 'points' is present in the leg
+                if 'points' in leg and leg['points']:
+                    # Extract latitude and longitude from each point in the 'points' array
+                    route_geometry = [[point['longitude'], point['latitude']] for point in leg['points']]
+                else:
+                    route_geometry = None
+            else:
+                # Handle the case when 'legs' is not found in the 'routes' section
+                route_geometry = None
+        else:
+            # Handle the case when 'routes' is not found in the data
+            route_geometry = None
+
+        # Convert the data to GeoJSON format
+        geojson_data = {
+            "type": "Feature",
+            "properties": {},
+            "geometry": {
+                "type": "LineString",
+                "coordinates": route_geometry
+            }
+        }
+
+        return {
+            'pickup_coords': [pickup_lon, pickup_lat],
+            'drop_coords': [drop_lon, drop_lat],
+            'route_geometry': geojson_data,
+        }
+    else:
+        # Handle API request failure
+        print(response.status_code)
+        print(response.text)
+        return None
+
+
 
 def geocoding(request):
     if request.method == 'POST':
