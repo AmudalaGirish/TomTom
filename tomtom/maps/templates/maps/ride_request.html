@@ -1,0 +1,171 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ride Request</title>
+    <link rel="stylesheet" href="{% static 'maps/css/styles.css' %}">
+    <!-- Include TomTom Map SDK -->
+    <link rel="stylesheet" type="text/css"
+        href="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps.css" />
+    <script type="text/javascript"
+        src="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps-web.min.js"></script>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="form-container">
+            <h2 class="title">Ride Request</h2>
+            <form method="post" action="{% url 'ride_request' %}" class="ride-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    {{ form.pickup_address.label_tag }}
+                    {{ form.pickup_address }}
+                    <button type="button" onclick="searchLocation('pickup')">Search</button>
+                    <button type="button" onclick="getCurrentLocation()">Use Current Location</button>
+                    <!-- Add a container for suggestions dropdown -->
+                    <div id="pickup-suggestions" class="suggestions"></div>
+                </div>
+                <div class="form-group">
+                    {{ form.drop_address.label_tag }}
+                    {{ form.drop_address }}
+                    <!-- Add a container for suggestions dropdown -->
+                    <div id="drop-suggestions" class="suggestions"></div>
+                </div>
+                <button type="submit" class="btn-submit">Submit</button>
+            </form>
+        </div>
+
+        <div class="map-container" id="dynamic-map"></div>
+    </div>
+
+    <!-- Map Initialization Script -->
+    <script type="text/javascript">
+        var map;
+        var mapMarkers = [];
+
+        function initMap() {
+            let center = [-33.9249, 18.4241];
+            map = tt.map({
+                key: 'XMnfj9I0Mi7gwOGlLf6MMjGGBTvzIIh6',
+                container: 'dynamic-map',
+                center: center,
+                zoom: 14,
+            });
+
+            map.on('load', () => {
+                console.log('Map loaded successfully!');
+                {% if pickup_coordinates and drop_coordinates %}
+                    var pickupMarker = new tt.Marker().setLngLat({{ pickup_coordinates|safe }}).addTo(map);
+                    var dropMarker = new tt.Marker().setLngLat({{ drop_coordinates|safe }}).addTo(map);
+
+                    tt.services
+                        .calculateRoute([{{ pickup_coordinates|safe }}, {{ drop_coordinates|safe }}])
+                        .go((result) => {
+                            const route = result.routes[0];
+                            if (route) {
+                                map.getSource('route').setData({
+                                    type: 'Feature',
+                                    properties: {},
+                                    geometry: route.geometry,
+                                });
+                            }
+                        });
+                {% endif %}
+            });
+        }
+
+        function searchLocation(type) {
+            let inputElement = type === 'pickup' ? document.getElementById('id_pickup_address') :
+                document.getElementById('id_drop_address');
+
+            tt.services.autocomplete({
+                key: 'XMnfj9I0Mi7gwOGlLf6MMjGGBTvzIIh6',
+                language: 'en-US',
+            }).query(inputElement.value)
+                .go((result) => {
+                    const suggestions = result.getSuggestions();
+                    updateAutocompleteDropdown(inputElement, suggestions, type);
+                });
+        }
+
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const coordinates = [position.coords.longitude, position.coords.latitude];
+                        updateMarker('pickup', coordinates);
+                        updateMapCenter(coordinates);
+                    },
+                    (error) => {
+                        console.error('Error getting current location:', error.message);
+                    }
+                );
+            } else {
+                console.error('Geolocation is not supported by this browser.');
+            }
+        }
+
+        function updateAutocompleteDropdown(inputElement, suggestions, type) {
+            const suggestionsContainer = document.getElementById(type + '-suggestions');
+            suggestionsContainer.innerHTML = '';
+
+            if (suggestions.length > 0) {
+                const list = document.createElement('ul');
+                suggestions.forEach((suggestion) => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = suggestion.address.freeformAddress;
+                    listItem.addEventListener('click', () => {
+                        inputElement.value = suggestion.address.freeformAddress;
+                        updateMarker(type, [suggestion.position.lon, suggestion.position.lat]);
+                        suggestionsContainer.innerHTML = '';
+                    });
+                    list.appendChild(listItem);
+                });
+                suggestionsContainer.appendChild(list);
+            }
+        }
+
+        function updateMarker(type, coordinates) {
+            mapMarkers.forEach(marker => marker.remove());
+
+            const marker = new tt.Marker().setLngLat(coordinates).addTo(map);
+            mapMarkers.push(marker);
+
+            if (mapMarkers.length === 2) {
+                drawRoute();
+            }
+        }
+
+        function drawRoute() {
+            const pickupCoords = mapMarkers[0].getLngLat();
+            const dropCoords = mapMarkers[1].getLngLat();
+
+            // Use TomTom Routing API to get the optimized route
+            tt.services
+                .calculateRoute([pickupCoords, dropCoords])
+                .go((result) => {
+                    const route = result.routes[0];
+                    if (route) {
+                        map.getSource('route').setData({
+                            type: 'Feature',
+                            properties: {},
+                            geometry: route.geometry,
+                        });
+                    }
+                });
+        }
+
+        function updateMapCenter(coordinates) {
+            map.setCenter(coordinates);
+        }
+
+        initMap();
+    </script>
+
+</body>
+
+</html>
