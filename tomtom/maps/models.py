@@ -10,3 +10,6 @@ class Ride(models.Model):
     pickup_longitude = models.FloatField(default=0.0)
     drop_latitude = models.FloatField(default=0.0)  # Set your desired default value
     drop_longitude = models.FloatField(default=0.0)
+
+class Employees(models.Model):
+    emp_id = 

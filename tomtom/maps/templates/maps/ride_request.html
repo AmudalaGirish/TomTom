@@ -24,7 +24,6 @@
                 <div class="form-group">
                     {{ form.pickup_address.label_tag }}
                     {{ form.pickup_address }}
-                    <button type="button" onclick="searchLocation('pickup')">Search</button>
                     <button type="button" onclick="getCurrentLocation()">Use Current Location</button>
                     <!-- Add a container for suggestions dropdown -->
                     <div id="pickup-suggestions" class="suggestions"></div>
@@ -35,7 +34,8 @@
                     <!-- Add a container for suggestions dropdown -->
                     <div id="drop-suggestions" class="suggestions"></div>
                 </div>
-                <button type="submit" class="btn-submit">Submit</button>
+                <button type="submit" class="btn-submit">Book</button>
+                
             </form>
         </div>
 
@@ -58,45 +58,52 @@
 
             map.on('load', () => {
                 console.log('Map loaded successfully!');
-                {% if pickup_coordinates and drop_coordinates %}
-                    var pickupMarker = new tt.Marker().setLngLat({{ pickup_coordinates|safe }}).addTo(map);
-                    var dropMarker = new tt.Marker().setLngLat({{ drop_coordinates|safe }}).addTo(map);
-
-                    tt.services
-                        .calculateRoute([{{ pickup_coordinates|safe }}, {{ drop_coordinates|safe }}])
-                        .go((result) => {
-                            const route = result.routes[0];
-                            if (route) {
-                                map.getSource('route').setData({
-                                    type: 'Feature',
-                                    properties: {},
-                                    geometry: route.geometry,
-                                });
-                            }
-                        });
-                {% endif %}
             });
         }
 
         function searchLocation(type) {
-            let inputElement = type === 'pickup' ? document.getElementById('id_pickup_address') :
-                document.getElementById('id_drop_address');
-
-            tt.services.autocomplete({
-                key: 'XMnfj9I0Mi7gwOGlLf6MMjGGBTvzIIh6',
-                language: 'en-US',
-            }).query(inputElement.value)
-                .go((result) => {
-                    const suggestions = result.getSuggestions();
+            let inputElement = type === 'pickup' ? document.getElementById('{{ form.pickup_address.id_for_label }}') :
+                document.getElementById('{{ form.drop_address.id_for_label }}');
+        
+            console.log(`searchLocation called for type: ${type}`);
+        
+            if (!inputElement) {
+                console.error(`Input element not found for type: ${type}`);
+                return;
+            }
+        
+            let query = inputElement.value;
+        
+            // AJAX request to the backend
+            fetch(`/maps/search_location/?query=${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Received data from backend:', data);
+                    const suggestions = data.locations;
                     updateAutocompleteDropdown(inputElement, suggestions, type);
+                })
+                .catch(error => {
+                    console.error('Error fetching search results:', error);
                 });
         }
-
+        document.addEventListener("DOMContentLoaded", function () {
+            // event listeners to input fields
+            document.getElementById('id_pickup_address').addEventListener('input', function () {
+                searchLocation('pickup');
+            });
+        
+            document.getElementById('id_drop_address').addEventListener('input', function () {
+                searchLocation('drop');
+            });
+        
+        });           
+    
         function getCurrentLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
                         const coordinates = [position.coords.longitude, position.coords.latitude];
+                        console.log('Current Location:', coordinates);
                         updateMarker('pickup', coordinates);
                         updateMapCenter(coordinates);
                     },
@@ -112,25 +119,30 @@
         function updateAutocompleteDropdown(inputElement, suggestions, type) {
             const suggestionsContainer = document.getElementById(type + '-suggestions');
             suggestionsContainer.innerHTML = '';
-
+        
             if (suggestions.length > 0) {
                 const list = document.createElement('ul');
                 suggestions.forEach((suggestion) => {
                     const listItem = document.createElement('li');
-                    listItem.textContent = suggestion.address.freeformAddress;
+                    listItem.textContent = suggestion.name;
                     listItem.addEventListener('click', () => {
-                        inputElement.value = suggestion.address.freeformAddress;
-                        updateMarker(type, [suggestion.position.lon, suggestion.position.lat]);
+                        inputElement.value = suggestion.name;
+                        updateMarker(type, [suggestion.longitude, suggestion.latitude]);
                         suggestionsContainer.innerHTML = '';
+                        console.log('Dropdown item clicked.');
                     });
                     list.appendChild(listItem);
                 });
                 suggestionsContainer.appendChild(list);
+                console.log('Dropdown updated with suggestions.');
+            } else {
+                console.log('No suggestions found.');
             }
         }
 
         function updateMarker(type, coordinates) {
             mapMarkers.forEach(marker => marker.remove());
+            console.log('Marker Updated:', coordinates);
 
             const marker = new tt.Marker().setLngLat(coordinates).addTo(map);
             mapMarkers.push(marker);
@@ -161,6 +173,7 @@
 
         function updateMapCenter(coordinates) {
             map.setCenter(coordinates);
+            console.log('Map Center Updated:', coordinates);
         }
 
         initMap();

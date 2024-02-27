@@ -123,6 +123,32 @@ def get_route_data(pickup_lon, pickup_lat, drop_lon, drop_lat):
         print(response.text)
         return None
 
+def search_location(request):
+    if request.method == 'GET':
+        query = request.GET.get('query', '')
+        api_key = 'XMnfj9I0Mi7gwOGlLf6MMjGGBTvzIIh6'
+
+        # search API (TomTom)
+        search_api_url = f'https://api.tomtom.com/search/2/search/{query}.json'
+
+        params = {
+            'key': api_key,
+            'language': 'en-US',
+        }
+
+        response = requests.get(search_api_url, params=params)
+        if response.status_code == 200:
+            data = response.json()
+            locations = [{
+                'name': result.get('address', {}).get('freeformAddress', ''),
+                'latitude': result.get('position', {}).get('lat', ''),
+                'longitude': result.get('position', {}).get('lon', ''),
+            } for result in data.get('results', [])]
+
+            return JsonResponse({'locations':locations})
+
+        return JsonResponse({'error': 'Failed to fetch results'}, status=500)
+    
 
 
 def geocoding(request):
