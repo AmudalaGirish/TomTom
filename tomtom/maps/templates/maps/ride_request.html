@@ -12,6 +12,9 @@
         href="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps.css" />
     <script type="text/javascript"
         src="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps-web.min.js"></script>
+        <!-- <script>
+            var tomtomApiKey = "{{ settings.TOM_API_KEY }}";  // Assuming 'settings' is available
+        </script> -->
 </head>
 
 <body>
@@ -51,6 +54,7 @@
             let center = [-33.9249, 18.4241];
             map = tt.map({
                 key: 'XMnfj9I0Mi7gwOGlLf6MMjGGBTvzIIh6',
+                //key: tomtomApiKey,
                 container: 'dynamic-map',
                 center: center,
                 zoom: 14,

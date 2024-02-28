@@ -4,6 +4,10 @@ from .forms import RideForm
 from .utils import get_coordinates
 from django.db import IntegrityError
 from django.contrib import messages
+from django.conf import settings
+from .models import Employee
+from .forms import EmployeeForm
+
 
 def ride_request(request):
     if request.method == 'POST':
@@ -60,6 +64,7 @@ import requests
 def get_route_data(pickup_lon, pickup_lat, drop_lon, drop_lat):
     # Replace 'YOUR_API_KEY' with your actual TomTom API key
     api_key = 'XMnfj9I0Mi7gwOGlLf6MMjGGBTvzIIh6'
+    # api_key = settings.TOM_API_KEY
 
     # TomTom Routing API endpoint
     routing_api_url = 'https://api.tomtom.com/routing/1/calculateRoute/{},{}:{},{}/json'.format(
@@ -127,6 +132,7 @@ def search_location(request):
     if request.method == 'GET':
         query = request.GET.get('query', '')
         api_key = 'XMnfj9I0Mi7gwOGlLf6MMjGGBTvzIIh6'
+        # api_key = settings.TOM_API_KEY
 
         # search API (TomTom)
         search_api_url = f'https://api.tomtom.com/search/2/search/{query}.json'
@@ -149,33 +155,18 @@ def search_location(request):
 
         return JsonResponse({'error': 'Failed to fetch results'}, status=500)
     
+def emp_list(request):
+    employees = Employee.objects.all()
+    return render(request, 'maps/emp_list.html', {'employees':employees})
 
-
-def geocoding(request):
+def add_employee(request):
     if request.method == 'POST':
-        address = request.POST.get('address')
-        # Implement your geocoding logic here using TomTom API
-        # Use tt.services.geocoding(...) and return the results in a dictionary
-        results = {
-            # Include latitude, longitude, and other relevant information
-            'latitude': -33.9249,
-            'longitude': 18.4241,
-            'address': 'Sample Address',
-        }
-        return JsonResponse(results)
-    else:
-        return render(request, 'maps/geocoding.html')
+        form = EmployeeForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('employee_list')
 
-def reverse_geocoding(request):
-    if request.method == 'POST':
-        latitude = request.POST.get('latitude')
-        longitude = request.POST.get('longitude')
-        # Implement your reverse geocoding logic here using TomTom API
-        # Use tt.services.reverseGeocoding(...) and return the results in a dictionary
-        results = {
-            # Include address components and other relevant information
-            'address': 'Sample Address',
-        }
-        return JsonResponse(results)
     else:
-        return render(request, 'maps/reverse_geocoding.html')
+        form = EmployeeForm()
+
+    return render(request, 'maps/add_emp.html', {'form':form})

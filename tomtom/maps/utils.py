@@ -1,12 +1,12 @@
-# maps/utils.py
-
 import requests
+from django.conf import settings
 
 def get_coordinates(address):
     """
     Get coordinates (latitude, longitude) for a given address using TomTom Geocoding API.
     """
-    api_key = 'XMnfj9I0Mi7gwOGlLf6MMjGGBTvzIIh6'  # Replace with your TomTom API key
+    api_key = 'XMnfj9I0Mi7gwOGlLf6MMjGGBTvzIIh6'
+    # api_key = settings.TOM_API_KEY  # Replace with your TomTom API key
     base_url = 'https://api.tomtom.com/search/2/geocode/{address}.json'
 
     # Prepare the URL with the address and API key

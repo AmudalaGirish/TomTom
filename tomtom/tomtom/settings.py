@@ -1,12 +1,16 @@
-# tomtom/settings.py
-
 import os
 from pathlib import Path
+# import environ
+
+# env = environ.Env()
+# environ.Env.read_env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-u@d7t7-xo!9-#@j7i815@q-+3$yvtd)z&yzv!cx=yap22t1pc!'
 DEBUG = True
+
+# TOM_API_KEY = env('API_KEY')
 
 ALLOWED_HOSTS = ["*"]
 
