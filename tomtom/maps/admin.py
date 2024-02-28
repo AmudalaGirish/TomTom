@@ -10,7 +10,7 @@ class EmployeeAdmin(admin.ModelAdmin):
     form = EmployeeForm
 
 class ClientAdmin(admin.ModelAdmin):
-    list_display = ('name', 'address', 'latitude', 'longitude')
+    list_display = ('id', 'name', 'address', 'latitude', 'longitude')
     form = ClientForm
 
 admin.site.register(Ride, RideAdmin)

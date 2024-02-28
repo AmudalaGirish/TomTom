@@ -11,4 +11,6 @@ urlpatterns = [
     path('add_client/', add_client, name='add_client'),
     path('get_clients/', get_clients, name='get_clients'),
     path('get_employees/', get_employees, name='get_employees'),
+    path('get_client_details/<int:pk>/', get_client_details, name='get_client_details'),
+    path('get_employee_details/<int:pk>/', get_employee_details, name='get_employee_details'),
 ]

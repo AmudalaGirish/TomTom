@@ -12,9 +12,10 @@
         href="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps.css" />
     <script type="text/javascript"
         src="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps-web.min.js"></script>
-        <!-- <script>
-            var tomtomApiKey = "{{ settings.TOM_API_KEY }}";  // Assuming 'settings' is available
-        </script> -->
+    <!-- Add your TomTom API key (uncomment the following line and replace YOUR_API_KEY with your actual key) -->
+    <!-- <script>
+        var tomtomApiKey = "YOUR_API_KEY";
+    </script> -->
 </head>
 
 <body>
@@ -25,11 +26,25 @@
             <form method="post" action="{% url 'ride_request' %}" class="ride-form">
                 {% csrf_token %}
                 <div class="form-group">
+                    <!-- Add dropdown for client selection -->
+                    <label for="client">Select Client:</label>
+                    <select id="client" name="client">
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
                     {{ form.pickup_address.label_tag }}
                     {{ form.pickup_address }}
                     <button type="button" onclick="getCurrentLocation()">Use Current Location</button>
                     <!-- Add a container for suggestions dropdown -->
                     <div id="pickup-suggestions" class="suggestions"></div>
+                </div>
+                <div class="form-group">
+                    <!-- Add dropdown for employee selection -->
+                    <label for="employee">Select Employee:</label>
+                    <select id="employee" name="employee">
+                        <!-- Options will be populated dynamically -->
+                    </select>
                 </div>
                 <div class="form-group">
                     {{ form.drop_address.label_tag }}
@@ -54,7 +69,7 @@
             let center = [-33.9249, 18.4241];
             map = tt.map({
                 key: 'XMnfj9I0Mi7gwOGlLf6MMjGGBTvzIIh6',
-                //key: tomtomApiKey,
+                // key: tomtomApiKey,
                 container: 'dynamic-map',
                 center: center,
                 zoom: 14,
@@ -90,6 +105,33 @@
                     console.error('Error fetching search results:', error);
                 });
         }
+
+        // Fetch and populate clients dropdown
+        fetch('/maps/get_clients/')
+            .then(response => response.json())
+            .then(data => {
+                const clientDropdown = document.getElementById('client');
+                data.clients.forEach(client => {
+                    const option = document.createElement('option');
+                    option.value = client.id;
+                    option.text = client.name;
+                    clientDropdown.add(option);
+                });
+            });
+
+        // Fetch and populate employees dropdown
+        fetch('/maps/get_employees/')
+            .then(response => response.json())
+            .then(data => {
+                const employeeDropdown = document.getElementById('employee');
+                data.employees.forEach(employee => {
+                    const option = document.createElement('option');
+                    option.value = employee.id;
+                    option.text = employee.name;
+                    employeeDropdown.add(option);
+                });
+            });
+
         document.addEventListener("DOMContentLoaded", function () {
             // event listeners to input fields
             document.getElementById('id_pickup_address').addEventListener('input', function () {
@@ -99,9 +141,50 @@
             document.getElementById('id_drop_address').addEventListener('input', function () {
                 searchLocation('drop');
             });
-        
-        });           
-    
+
+            // Inside the event listener for client dropdown change
+            document.getElementById('client').addEventListener('change', function () {
+                // Get the selected client ID
+                const selectedClientId = this.value;
+
+                // Fetch the client details based on the selected ID
+                fetch(`/maps/get_client_details/${selectedClientId}/`)
+                    .then(response => response.json())
+                    .then(clientDetails => {
+                        console.log('Received client details from backend:', clientDetails.address);
+                        // Update the pickup address input with the selected client's address
+                        document.getElementById('id_pickup_address').value = clientDetails.address;
+
+                        // You can also update the map marker based on the client's address
+                        updateMarker('pickup', [clientDetails.longitude, clientDetails.latitude]);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching client details:', error);
+                    });
+            });
+
+            // Inside the event listener for employee dropdown change
+            document.getElementById('employee').addEventListener('change', function () {
+                // Get the selected employee ID
+                const selectedEmployeeId = this.value;
+
+                // Fetch the employee details based on the selected ID
+                fetch(`/maps/get_employee_details/${selectedEmployeeId}/`)
+                    .then(response => response.json())
+                    .then(employeeDetails => {
+                        console.log('Received employee details from backend:', employeeDetails.address);
+                        // Update the drop address input with the selected employee's address
+                        document.getElementById('id_drop_address').value = employeeDetails.address;
+
+                        // You can also update the map marker based on the employee's address
+                        updateMarker('drop', [employeeDetails.longitude, employeeDetails.latitude]);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching employee details:', error);
+                    });
+            });
+        });
+
         function getCurrentLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(

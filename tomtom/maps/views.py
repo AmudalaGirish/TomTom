@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from .forms import RideForm
 from .utils import get_coordinates
@@ -197,3 +197,37 @@ def get_employees(request):
     employee_data = [{'id': employee.id, 'name': employee.name} for employee in employees]
     return JsonResponse({'employees': employee_data})
 
+def get_client_details(request, pk):
+    if request.method == 'GET':
+        try:
+            client = get_object_or_404(Client, pk=pk)
+            client_details = {
+                'id': client.id,
+                'address': client.address,
+                'latitude': float(client.latitude) if client.latitude is not None else None,
+                'longitude': float(client.longitude) if client.longitude is not None else None,
+            }
+            return JsonResponse(client_details)
+        except Client.DoesNotExist:
+            return JsonResponse({'error': 'Client not found'}, status=404)
+    else:
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
+    
+def get_employee_details(request, pk):
+    if request.method == 'GET':
+        try:
+            employee = get_object_or_404(Employee, pk=pk)
+            employee_details = {
+                'id': employee.id,
+                'emp_id': employee.emp_id,
+                'name': employee.name,
+                'address': employee.address,
+                'longitude': float(employee.longitude) if employee.longitude is not None else None,
+                'latitude': float(employee.latitude) if employee.latitude is not None else None,
+            }
+
+            return JsonResponse(employee_details)
+        except Employee.DoesNotExist:
+            return JsonResponse({'error': 'Employee not found'}, status=404)
+
+    return JsonResponse({'error': 'Invalid request method'}, status=400)

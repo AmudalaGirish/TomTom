@@ -45,8 +45,8 @@
 
             map.on('load', () => {
                 console.log('Map loaded successfully!');
-                var pickupMarker = new tt.Marker().setLngLat([pickup_lon, pickup_lat]).addTo(map);
-                var dropMarker = new tt.Marker().setLngLat([drop_lon, drop_lat]).addTo(map);
+                var pickupMarker = new tt.Marker({ color: 'green' }).setLngLat([pickup_lon, pickup_lat]).addTo(map);
+                var dropMarker = new tt.Marker({ color: 'red' }).setLngLat([drop_lon, drop_lat]).addTo(map);
 
                 try {
                     // Check if the routeGeometry is a valid GeoJSON object
