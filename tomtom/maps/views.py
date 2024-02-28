@@ -5,8 +5,8 @@ from .utils import get_coordinates
 from django.db import IntegrityError
 from django.contrib import messages
 from django.conf import settings
-from .models import Employee
-from .forms import EmployeeForm
+from .models import Employee, Client
+from .forms import EmployeeForm, ClientForm
 
 
 def ride_request(request):
@@ -170,3 +170,30 @@ def add_employee(request):
         form = EmployeeForm()
 
     return render(request, 'maps/add_emp.html', {'form':form})
+
+def client_list(request):
+    clients = Client.objects.all()
+    return render(request, 'maps/client_list.html', {'clients':clients})
+
+def add_client(request):
+    if request.method == 'POST':
+        form = ClientForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('client_list')
+
+    else:
+        form = EmployeeForm()
+
+    return render(request, 'maps/add_client.html', {'form':form})
+
+def get_clients(request):
+    clients = Client.objects.all()
+    client_data = [{'id': client.id, 'name': client.name} for client in clients]
+    return JsonResponse({'clients': client_data})
+
+def get_employees(request):
+    employees = Employee.objects.all()
+    employee_data = [{'id': employee.id, 'name': employee.name} for employee in employees]
+    return JsonResponse({'employees': employee_data})
+

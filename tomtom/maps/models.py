@@ -28,3 +28,17 @@ class Employee(models.Model):
 def update_employee_coordinates(sender, instance, **kwargs):
     # Automatically update latitude and longitude before saving the Employee instance
     instance.latitude, instance.longitude = get_coordinates(instance.address)
+
+class Client(models.Model):
+    name = models.CharField(max_length=100, verbose_name=_('Name'))
+    address = models.TextField(verbose_name=_('Address'))
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True, verbose_name=_('Latitude'))
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True, verbose_name=_('Longitude'))
+
+    def __str__(self):
+        return self.name
+
+@receiver(pre_save, sender=Client)
+def update_client_coordinates(sender, instance, **kwargs):
+    # Automatically update latitude and longitude before saving the Client instance
+    instance.latitude, instance.longitude = get_coordinates(instance.address)

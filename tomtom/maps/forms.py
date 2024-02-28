@@ -1,5 +1,5 @@
 from django import forms
-from .models import Ride, Employee
+from .models import Ride, Employee, Client
 
 class RideForm(forms.ModelForm):
     class Meta:
@@ -11,3 +11,7 @@ class EmployeeForm(forms.ModelForm):
         model = Employee
         fields = ['emp_id', 'name', 'address']
 
+class ClientForm(forms.ModelForm):
+    class Meta:
+        model = Client
+        fields = ['name', 'address']
