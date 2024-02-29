@@ -7,7 +7,8 @@ from django.contrib import messages
 from django.conf import settings
 from .models import Employee, Client
 from .forms import EmployeeForm, ClientForm
-
+from django.views.decorators.http import require_GET
+from django.db.models import F, Func, FloatField
 
 def ride_request(request):
     if request.method == 'POST':
@@ -231,3 +232,50 @@ def get_employee_details(request, pk):
             return JsonResponse({'error': 'Employee not found'}, status=404)
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+class DistanceExpression(Func):
+    function = 'SQRT'
+    arity = 1
+
+    def __init__(self, expression, **extra):
+        super().__init__(expression, **extra)
+        self.output_field = FloatField()
+
+@require_GET
+def get_nearby_employees(request):
+    # Assuming you have a Ride model with pickup and drop coordinates
+    # Fetch the pickup and drop coordinates from the database
+    pickup_coords = [request.GET.get('pickup_lon'), request.GET.get('pickup_lat')]
+    drop_coords = [request.GET.get('drop_lon'), request.GET.get('drop_lat')]
+
+    # Check if coordinates are valid
+    if None in pickup_coords or None in drop_coords:
+        return JsonResponse({'error': 'Invalid coordinates'})
+
+    # Get nearby employees based on the pickup and drop coordinates
+    # nearby_employees = Employee.objects.annotate(
+    #     distance = F('latitude') + F('longitude') - (float(pickup_coords[0]) + float(pickup_coords[1]) + float(drop_coords[0]) + float(drop_coords[1]))
+    # ).order_by('distance')[:5]  # Adjust the number of employees as needed
+
+    # Get nearby employees based on the pickup and drop coordinates
+    nearby_employees = Employee.objects.annotate(
+        distance=DistanceExpression(
+            (F('latitude') - pickup_coords[0]) ** 2 + (F('longitude') - pickup_coords[1]) ** 2
+        )
+    ).order_by('distance')[:5]
+    # Add print statements to debug the values of each employee
+    for employee in nearby_employees:
+        print(f"Employee Name: {employee.name}, Latitude: {employee.latitude}, Longitude: {employee.longitude}")
+
+
+    # Create a list of dictionaries containing employee details
+    nearby_employees_list = [
+        {
+            'name': employee.name,
+            'latitude': employee.latitude,
+            'longitude': employee.longitude,
+        }
+        for employee in nearby_employees
+    ]
+
+    return JsonResponse({'nearby_employees': nearby_employees_list})

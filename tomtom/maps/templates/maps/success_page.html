@@ -9,8 +9,10 @@
     <title>Ride Request - Success</title>
     <link rel="stylesheet" href="{% static 'maps/css/styles.css' %}">
     <!-- Include TomTom Map SDK -->
-    <link rel="stylesheet" type="text/css" href="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps.css" />
-    <script type="text/javascript" src="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps-web.min.js"></script>
+    <link rel="stylesheet" type="text/css"
+        href="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps.css" />
+    <script type="text/javascript"
+        src="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps-web.min.js"></script>
 </head>
 
 <body>
@@ -18,6 +20,7 @@
     <div class="container">
         <div class="map-container" id="dynamic-map"></div>
     </div>
+    <button id="showNearbyEmployeesBtn">Show Nearby Employees</button>
 
     <!-- Map Initialization Script -->
     <script type="text/javascript">
@@ -26,7 +29,7 @@
         var pickup_lat = {{ pickup_lat }};
         var drop_lon = {{ drop_lon }};
         var drop_lat = {{ drop_lat }};
-        var routeGeometry = {{ route_data.route_geometry|safe }};
+        var routeGeometry = {{ route_data.route_geometry| safe }};
 
         console.log('Pickup Longitude:', pickup_lon);
         console.log('Pickup Latitude:', pickup_lat);
@@ -102,6 +105,33 @@
                 } catch (error) {
                     console.error('Error handling GeoJSON:', error);
                 }
+            });
+
+            // Add event listener to the "Show Nearby Employees" button
+            document.getElementById('showNearbyEmployeesBtn').addEventListener('click', function () {
+                // Make an AJAX request to get nearby employees
+                fetch(`/maps/get_nearby_employees/?pickup_lon=${pickup_lon}&pickup_lat=${pickup_lat}&drop_lon=${drop_lon}&drop_lat=${drop_lat}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const nearbyEmployees = data.nearby_employees; 
+                        // Add markers for nearby employees on the map
+                        console.log(typeof nearbyEmployees);
+                        console.log(nearbyEmployees);
+                        nearbyEmployees.forEach(employee => {
+                            var marker = new tt.Marker({ color: 'blue' }).setLngLat([employee.longitude, employee.latitude]);
+                            // Create a popup
+                            var popup = new tt.Popup().setHTML(`<p>${employee.name}</p>`);
+
+                            // Add the popup to the marker
+                            marker.setPopup(popup);
+
+                            // Add the marker to the map
+                            marker.addTo(map);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching nearby employees:', error);
+                    });
             });
         }
 
