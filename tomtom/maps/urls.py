@@ -3,7 +3,8 @@ from .views import *
 
 urlpatterns = [
     path('ride/request/', ride_request, name='ride_request'),
-    path('success-page/<str:pickup_lon>/<str:pickup_lat>/<str:drop_lon>/<str:drop_lat>/', success_page, name='success_page'),
+    # path('success-page/<str:pickup_lon>/<str:pickup_lat>/<str:drop_lon>/<str:drop_lat>/', success_page, name='success_page'),
+    path('success-page/<str:pickup_lon>/<str:pickup_lat>/<str:pickup_lon_1>/<str:pickup_lat_1>/<str:pickup_lon_2>/<str:pickup_lat_2>/<str:drop_lon>/<str:drop_lat>/', success_page, name='success_page'),
     path('search_location/', search_location, name='search_location'),  # Add this line
     path('employees/', emp_list, name='employee_list'),
     path('add_employee/', add_employee, name='add_employee'),

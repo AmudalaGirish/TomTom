@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from .forms import RideForm
-from .utils import get_coordinates
+from .utils import get_coordinates, haversine
 from django.db import IntegrityError
 from django.contrib import messages
 from django.conf import settings
@@ -9,6 +9,8 @@ from .models import Employee, Client
 from .forms import EmployeeForm, ClientForm
 from django.views.decorators.http import require_GET
 from django.db.models import F, Func, FloatField
+import math 
+from math import radians, sin, cos, sqrt, atan2
 
 def ride_request(request):
     if request.method == 'POST':
@@ -16,14 +18,19 @@ def ride_request(request):
         if form.is_valid():
             ride = form.save(commit=False)
 
-            # Get coordinates for pickup and drop addresses
+            # Get coordinates for main pickup and additional pickup locations
             pickup_coords = get_coordinates(ride.pickup_address)
+            pickup_coords_1 = get_coordinates(ride.pickup_address_1)
+            pickup_coords_2 = get_coordinates(ride.pickup_address_2)
+            # Get coordinates for the drop location
             drop_coords = get_coordinates(ride.drop_address)
 
-            # Check if coordinates are available
-            if pickup_coords and drop_coords:
+            # Check if coordinates are available for all pickup locations
+            if all([pickup_coords, pickup_coords_1, pickup_coords_2, drop_coords]):
                 # Set the coordinates in the Ride object
                 ride.pickup_latitude, ride.pickup_longitude = pickup_coords
+                ride.pickup_latitude_1, ride.pickup_longitude_1 = pickup_coords_1
+                ride.pickup_latitude_2, ride.pickup_longitude_2 = pickup_coords_2
                 ride.drop_latitude, ride.drop_longitude = drop_coords
 
                 try:
@@ -31,7 +38,11 @@ def ride_request(request):
                     ride.save()
 
                     # Redirect to a success page or handle as needed
-                    return redirect('success_page', pickup_lon=ride.pickup_longitude, pickup_lat=ride.pickup_latitude, drop_lon=ride.drop_longitude, drop_lat=ride.drop_latitude)
+                    return redirect('success_page',
+                                    pickup_lon=ride.pickup_longitude, pickup_lat=ride.pickup_latitude,
+                                    pickup_lon_1=ride.pickup_longitude_1, pickup_lat_1=ride.pickup_latitude_1,
+                                    pickup_lon_2=ride.pickup_longitude_2, pickup_lat_2=ride.pickup_latitude_2,
+                                    drop_lon=ride.drop_longitude, drop_lat=ride.drop_latitude)
                 except IntegrityError as e:
                     # Handle IntegrityError, for example, duplicate entries
                     messages.error(request, 'IntegrityError: {}'.format(str(e)))
@@ -43,35 +54,45 @@ def ride_request(request):
 
     return render(request, 'maps/ride_request.html', {'form': form})
 
-def success_page(request, pickup_lon, pickup_lat, drop_lon, drop_lat):
+def success_page(request, pickup_lon, pickup_lat, pickup_lon_1, pickup_lat_1, pickup_lon_2, pickup_lat_2, drop_lon, drop_lat):
     # Convert parameters to float
     pickup_lon = float(pickup_lon)
     pickup_lat = float(pickup_lat)
+    pickup_lon_1 = float(pickup_lon_1)
+    pickup_lat_1 = float(pickup_lat_1)
+    pickup_lon_2 = float(pickup_lon_2)
+    pickup_lat_2 = float(pickup_lat_2)
     drop_lon = float(drop_lon)
     drop_lat = float(drop_lat)
 
     # Call a function to get the route data
-    route_data = get_route_data(pickup_lon, pickup_lat, drop_lon, drop_lat)
+    route_data = get_route_data([pickup_lon, pickup_lat], [pickup_lon_1, pickup_lat_1], [pickup_lon_2, pickup_lat_2], drop_coords=[drop_lon, drop_lat])
 
     return render(request, 'maps/success_page.html', {
         'pickup_lon': pickup_lon,
         'pickup_lat': pickup_lat,
+        'pickup_lon_1': pickup_lon_1,
+        'pickup_lat_1': pickup_lat_1,
+        'pickup_lon_2': pickup_lon_2,
+        'pickup_lat_2': pickup_lat_2,
         'drop_lon': drop_lon,
         'drop_lat': drop_lat,
         'route_data': route_data,
     })
 import requests
 
-def get_route_data(pickup_lon, pickup_lat, drop_lon, drop_lat):
+def get_route_data(*pickup_coords, drop_coords):
     # Replace 'YOUR_API_KEY' with your actual TomTom API key
     api_key = 'XMnfj9I0Mi7gwOGlLf6MMjGGBTvzIIh6'
     # api_key = settings.TOM_API_KEY
 
     # TomTom Routing API endpoint
-    routing_api_url = 'https://api.tomtom.com/routing/1/calculateRoute/{},{}:{},{}/json'.format(
-        pickup_lat, pickup_lon, drop_lat, drop_lon
-    )
-
+    version_number = 1
+    locations = ':'.join([f"{lat},{lon}" for lon, lat in pickup_coords] + [f"{drop_coords[1]},{drop_coords[0]}"])
+    print("locations:", locations)
+    content_type = 'json'  # You can change this if needed
+    endpoint = f'https://api.tomtom.com/routing/{version_number}/calculateRoute/{locations}/{content_type}'
+    print("endpoint:", endpoint)
     # Parameters for the API request
     params = {
         'key': api_key,
@@ -80,7 +101,7 @@ def get_route_data(pickup_lon, pickup_lat, drop_lon, drop_lat):
     }
 
     # Make the API request
-    response = requests.get(routing_api_url, params=params)
+    response = requests.get(endpoint, params=params)
 
     # Check if the request was successful (status code 200)
     if response.status_code == 200:
@@ -119,8 +140,8 @@ def get_route_data(pickup_lon, pickup_lat, drop_lon, drop_lat):
         }
 
         return {
-            'pickup_coords': [pickup_lon, pickup_lat],
-            'drop_coords': [drop_lon, drop_lat],
+            'pickup_coords': [[coord[1], coord[0]] for coord in pickup_coords],
+            'drop_coords': [drop_coords[1], drop_coords[0]],
             'route_geometry': geojson_data,
         }
     else:
@@ -134,13 +155,16 @@ def search_location(request):
         query = request.GET.get('query', '')
         api_key = 'XMnfj9I0Mi7gwOGlLf6MMjGGBTvzIIh6'
         # api_key = settings.TOM_API_KEY
-
+        
+        # Country code for India
+        india_country_code = 'IND'
         # search API (TomTom)
         search_api_url = f'https://api.tomtom.com/search/2/search/{query}.json'
 
         params = {
             'key': api_key,
             'language': 'en-US',
+            'countrySet': india_country_code,
         }
 
         response = requests.get(search_api_url, params=params)
@@ -233,40 +257,42 @@ def get_employee_details(request, pk):
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
-class DistanceExpression(Func):
-    function = 'SQRT'
-    arity = 1
-
-    def __init__(self, expression, **extra):
-        super().__init__(expression, **extra)
-        self.output_field = FloatField()
-
 @require_GET
 def get_nearby_employees(request):
-    # Assuming you have a Ride model with pickup and drop coordinates
-    # Fetch the pickup and drop coordinates from the database
+
     pickup_coords = [request.GET.get('pickup_lon'), request.GET.get('pickup_lat')]
     drop_coords = [request.GET.get('drop_lon'), request.GET.get('drop_lat')]
 
     # Check if coordinates are valid
     if None in pickup_coords or None in drop_coords:
+        print(f"Invalid coordinates - Pickup: {pickup_coords}, Drop: {drop_coords}")
         return JsonResponse({'error': 'Invalid coordinates'})
+    # Convert coordinates to floats for further processing
+    pickup_coords = [float(coord) for coord in pickup_coords]
+    drop_coords = [float(coord) for coord in drop_coords]
 
-    # Get nearby employees based on the pickup and drop coordinates
-    # nearby_employees = Employee.objects.annotate(
-    #     distance = F('latitude') + F('longitude') - (float(pickup_coords[0]) + float(pickup_coords[1]) + float(drop_coords[0]) + float(drop_coords[1]))
-    # ).order_by('distance')[:5]  # Adjust the number of employees as needed
+    # Ensure that the coordinates are valid floats
+    if any(math.isnan(coord) for coord in pickup_coords) or any(math.isnan(coord) for coord in drop_coords):
+        print(f"Invalid coordinates after conversion to floats - Pickup: {pickup_coords}, Drop: {drop_coords}")
+        return JsonResponse({'error': 'Invalid coordinates'})
+    
+    nearby_employees = Employee.objects.all()
 
-    # Get nearby employees based on the pickup and drop coordinates
-    nearby_employees = Employee.objects.annotate(
-        distance=DistanceExpression(
-            (F('latitude') - pickup_coords[0]) ** 2 + (F('longitude') - pickup_coords[1]) ** 2
-        )
-    ).order_by('distance')[:5]
-    # Add print statements to debug the values of each employee
     for employee in nearby_employees:
-        print(f"Employee Name: {employee.name}, Latitude: {employee.latitude}, Longitude: {employee.longitude}")
+        employee.latitude = float(employee.latitude)
+        employee.longitude = float(employee.longitude)
 
+    radius_km = 5  # Adjust the radius as needed
+
+    # Filter employees based on haversine distance
+    filtered_employees = [
+        employee for employee in nearby_employees
+        if haversine(employee.latitude, employee.longitude, pickup_coords[1], pickup_coords[0]) <= radius_km
+    ][:5]
+
+    # Add print statements to debug the values of each employee
+    for employee in filtered_employees:
+        print(f"Employee Name: {employee.name}, Latitude: {employee.latitude}, Longitude: {employee.longitude}")
 
     # Create a list of dictionaries containing employee details
     nearby_employees_list = [
@@ -275,7 +301,7 @@ def get_nearby_employees(request):
             'latitude': employee.latitude,
             'longitude': employee.longitude,
         }
-        for employee in nearby_employees
+        for employee in filtered_employees
     ]
 
     return JsonResponse({'nearby_employees': nearby_employees_list})

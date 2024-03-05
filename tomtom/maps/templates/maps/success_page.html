@@ -27,15 +27,28 @@
         var map;
         var pickup_lon = {{ pickup_lon }};
         var pickup_lat = {{ pickup_lat }};
+        var pickup_lon_1 = {{ pickup_lon_1 }};
+        var pickup_lat_1 = {{ pickup_lat_1 }};
+        var pickup_lon_2 = {{ pickup_lon_2 }};
+        var pickup_lat_2 = {{ pickup_lat_2 }};
         var drop_lon = {{ drop_lon }};
         var drop_lat = {{ drop_lat }};
         var routeGeometry = {{ route_data.route_geometry| safe }};
+        var geomatryCoordinates = routeGeometry.geometry.coordinates;
+        //var geo_coords = routeGeometry.geometry.coordinates;
 
         console.log('Pickup Longitude:', pickup_lon);
         console.log('Pickup Latitude:', pickup_lat);
+        console.log('Pickup 1 Longitude:', pickup_lon_1);
+        console.log('Pickup 1 Latitude:', pickup_lat_1);
+        console.log('Pickup 2 Longitude:', pickup_lon_2);
+        console.log('Pickup 2 Latitude:', pickup_lat_2);
         console.log('Drop Longitude:', drop_lon);
         console.log('Drop Latitude:', drop_lat);
         console.log('Route Geometry:', routeGeometry);
+        console.log(routeGeometry.geometry.coordinates)
+        //console.log('geo_cords:', geo_coords);
+        //console.log('Route Geometries:', {{ route_data.route_geometries|safe }});
 
         function initMap() {
             let center = [(pickup_lat + drop_lat) / 2, (pickup_lon + drop_lon) / 2];
@@ -48,10 +61,22 @@
 
             map.on('load', () => {
                 console.log('Map loaded successfully!');
+
+                // Add markers for all pickup locations and drop location
                 var pickupMarker = new tt.Marker({ color: 'green' }).setLngLat([pickup_lon, pickup_lat]).addTo(map);
+                var pickupMarker1 = new tt.Marker({ color: 'blue' }).setLngLat([pickup_lon_1, pickup_lat_1]).addTo(map);
+                var pickupMarker2 = new tt.Marker({ color: 'orange' }).setLngLat([pickup_lon_2, pickup_lat_2]).addTo(map);
                 var dropMarker = new tt.Marker({ color: 'red' }).setLngLat([drop_lon, drop_lat]).addTo(map);
 
                 try {
+                    var routeGeometry = {
+                        type: 'Feature',
+                        geometry: {
+                            type: 'LineString',
+                            coordinates: geomatryCoordinates,
+                        },
+                    };
+
                     // Check if the routeGeometry is a valid GeoJSON object
                     if (isValidGeoJSON(routeGeometry)) {
                         map.addLayer({
@@ -71,11 +96,17 @@
                                 'line-opacity': 0.8,
                             },
                         });
+                        console.log('Route layer added successfully!');
                     } else {
                         console.error('Invalid GeoJSON format. Creating a simple LineString.');
 
                         // Attempt to create a LineString GeoJSON
-                        var coordinates = [[pickup_lon, pickup_lat], [drop_lon, drop_lat]];
+                        var coordinates = [
+                            [pickup_lon, pickup_lat],
+                            [pickup_lon_1, pickup_lat_1],
+                            [pickup_lon_2, pickup_lat_2],
+                            [drop_lon, drop_lat]
+                        ];
                         routeGeometry = {
                             type: 'Feature',
                             geometry: {
@@ -101,6 +132,7 @@
                                 'line-opacity': 0.8,
                             },
                         });
+                        console.log('Route layer added successfully with new GeoJSON.');
                     }
                 } catch (error) {
                     console.error('Error handling GeoJSON:', error);
@@ -113,12 +145,12 @@
                 fetch(`/maps/get_nearby_employees/?pickup_lon=${pickup_lon}&pickup_lat=${pickup_lat}&drop_lon=${drop_lon}&drop_lat=${drop_lat}`)
                     .then(response => response.json())
                     .then(data => {
-                        const nearbyEmployees = data.nearby_employees; 
+                        const nearbyEmployees = data.nearby_employees;
                         // Add markers for nearby employees on the map
                         console.log(typeof nearbyEmployees);
                         console.log(nearbyEmployees);
                         nearbyEmployees.forEach(employee => {
-                            var marker = new tt.Marker({ color: 'blue' }).setLngLat([employee.longitude, employee.latitude]);
+                            var marker = new tt.Marker({ color: 'black' }).setLngLat([employee.longitude, employee.latitude]);
                             // Create a popup
                             var popup = new tt.Popup().setHTML(`<p>${employee.name}</p>`);
 
@@ -139,7 +171,7 @@
             return typeof data === 'object' && data !== null && data.type === 'Feature';
         }
 
-        initMap();
+        initMap();  // Call the initMap function
     </script>
 
 </body>

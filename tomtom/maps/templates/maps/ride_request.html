@@ -52,6 +52,20 @@
                     <!-- Add a container for suggestions dropdown -->
                     <div id="drop-suggestions" class="suggestions"></div>
                 </div>
+                <!-- Add a new form group for additional pickup locations -->
+                <div class="form-group">
+                    {{ form.pickup_address_1.label_tag }}
+                    {{ form.pickup_address_1 }}
+                    <!-- Add a container for suggestions dropdown -->
+                    <div id="pickup-suggestions-1" class="suggestions"></div>
+                </div>
+
+                <div class="form-group">
+                    {{ form.pickup_address_2.label_tag }}
+                    {{ form.pickup_address_2 }}
+                    <!-- Add a container for suggestions dropdown -->
+                    <div id="pickup-suggestions-2" class="suggestions"></div>
+                </div>
                 <button type="submit" class="btn-submit">Book</button>
                 
             </form>

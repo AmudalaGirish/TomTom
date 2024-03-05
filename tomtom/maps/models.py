@@ -7,11 +7,17 @@ from maps.utils import get_coordinates
 
 class Ride(models.Model):
     pickup_address = models.CharField(max_length=255)
+    pickup_address_1 = models.CharField(max_length=255, blank=True, null=True)
+    pickup_address_2 = models.CharField(max_length=255, blank=True, null=True)
     drop_address = models.CharField(max_length=255)
     # Add the following fields for storing coordinates
     pickup_latitude = models.FloatField(default=0.0)
     pickup_longitude = models.FloatField(default=0.0)
-    drop_latitude = models.FloatField(default=0.0)  # Set your desired default value
+    pickup_latitude_1 = models.FloatField(default=0.0, blank=True, null=True)
+    pickup_longitude_1 = models.FloatField(default=0.0, blank=True, null=True)
+    pickup_latitude_2 = models.FloatField(default=0.0, blank=True, null=True)
+    pickup_longitude_2 = models.FloatField(default=0.0, blank=True, null=True)
+    drop_latitude = models.FloatField(default=0.0)
     drop_longitude = models.FloatField(default=0.0)
 
 class Employee(models.Model):

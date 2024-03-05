@@ -3,8 +3,7 @@ from .models import Ride, Employee, Client
 from .forms import EmployeeForm, ClientForm
 
 class RideAdmin(admin.ModelAdmin):
-    list_display = ('id', 'pickup_address', 'drop_address', 'pickup_latitude', 'pickup_longitude', 'drop_latitude', 'drop_longitude')
-
+    list_display = ('id', 'pickup_address', 'pickup_address_1', 'pickup_address_2', 'drop_address', 'pickup_latitude', 'pickup_longitude', 'pickup_latitude_1', 'pickup_longitude_1', 'pickup_latitude_2', 'pickup_longitude_2', 'drop_latitude', 'drop_longitude')
 class EmployeeAdmin(admin.ModelAdmin):
     list_display = ('emp_id', 'name', 'address', 'latitude', 'longitude')
     form = EmployeeForm
