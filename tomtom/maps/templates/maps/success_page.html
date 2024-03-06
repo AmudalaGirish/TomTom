@@ -35,7 +35,6 @@
         var drop_lat = {{ drop_lat }};
         var routeGeometry = {{ route_data.route_geometry| safe }};
         var geomatryCoordinates = routeGeometry.geometry.coordinates;
-        //var geo_coords = routeGeometry.geometry.coordinates;
 
         console.log('Pickup Longitude:', pickup_lon);
         console.log('Pickup Latitude:', pickup_lat);
@@ -46,9 +45,8 @@
         console.log('Drop Longitude:', drop_lon);
         console.log('Drop Latitude:', drop_lat);
         console.log('Route Geometry:', routeGeometry);
-        console.log(routeGeometry.geometry.coordinates)
-        //console.log('geo_cords:', geo_coords);
-        //console.log('Route Geometries:', {{ route_data.route_geometries|safe }});
+        console.log('Route Coordinates:', routeGeometry.geometry.coordinates);
+
 
         function initMap() {
             let center = [(pickup_lat + drop_lat) / 2, (pickup_lon + drop_lon) / 2];
@@ -67,6 +65,11 @@
                 var pickupMarker1 = new tt.Marker({ color: 'blue' }).setLngLat([pickup_lon_1, pickup_lat_1]).addTo(map);
                 var pickupMarker2 = new tt.Marker({ color: 'orange' }).setLngLat([pickup_lon_2, pickup_lat_2]).addTo(map);
                 var dropMarker = new tt.Marker({ color: 'red' }).setLngLat([drop_lon, drop_lat]).addTo(map);
+
+                // Add markers for every 20th coordinate
+                //every20thCoords.forEach(coord => {
+                  //  var marker = new tt.Marker({ color: 'purple' }).setLngLat(coord).addTo(map);
+                //});
 
                 try {
                     var routeGeometry = {

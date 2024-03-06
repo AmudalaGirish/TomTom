@@ -11,6 +11,8 @@ from django.views.decorators.http import require_GET
 from django.db.models import F, Func, FloatField
 import math 
 from math import radians, sin, cos, sqrt, atan2
+import requests
+import json
 
 def ride_request(request):
     if request.method == 'POST':
@@ -66,7 +68,9 @@ def success_page(request, pickup_lon, pickup_lat, pickup_lon_1, pickup_lat_1, pi
     drop_lat = float(drop_lat)
 
     # Call a function to get the route data
-    route_data = get_route_data([pickup_lon, pickup_lat], [pickup_lon_1, pickup_lat_1], [pickup_lon_2, pickup_lat_2], drop_coords=[drop_lon, drop_lat])
+    route_metries = get_optimized_route([pickup_lon, pickup_lat], [pickup_lon_1, pickup_lat_1], [pickup_lon_2, pickup_lat_2], drop_coords=[drop_lon, drop_lat])
+    
+    route_data = get_geojson_data([pickup_lon, pickup_lat], [pickup_lon_1, pickup_lat_1], [pickup_lon_2, pickup_lat_2], drop_coords=[drop_lon, drop_lat], geojson=route_metries)
 
     return render(request, 'maps/success_page.html', {
         'pickup_lon': pickup_lon,
@@ -79,20 +83,81 @@ def success_page(request, pickup_lon, pickup_lat, pickup_lon_1, pickup_lat_1, pi
         'drop_lat': drop_lat,
         'route_data': route_data,
     })
-import requests
 
-def get_route_data(*pickup_coords, drop_coords):
+def get_optimized_route(*pickup_coords, drop_coords):
+    version_number = 1
+    api_key = 'XMnfj9I0Mi7gwOGlLf6MMjGGBTvzIIh6'
+
+    # Prepare the payload for Waypoint Optimization API
+    payload = {
+        'waypoints': [
+            {'point': {'latitude': lat, 'longitude': lon}} for lon, lat in pickup_coords
+        ],
+        'options': {
+            'travelMode': 'car',
+        }
+    }
+
+    # Include the drop location in the waypoints
+    payload['waypoints'].append({'point': {'latitude': drop_coords[1], 'longitude': drop_coords[0]}})
+
+    # TomTom Waypoint Optimization API endpoint
+    endpoint = f'https://api.tomtom.com/routing/waypointoptimization/{version_number}'
+
+    # Parameters for the API request
+    params = {
+        'key': api_key,
+    }
+
+    # Convert payload to JSON format
+    json_payload = json.dumps(payload)
+
+    # Make the API request with POST method and data using the session
+    response = requests.post(endpoint, params=params, data=json_payload, headers={'Content-Type': 'application/json'})
+    
+    # Combine pickup coordinates and drop coordinates into a single list
+    all_coords = list(pickup_coords) + [drop_coords]
+    
+    if response.status_code == 200:
+        # Parse the JSON response
+        data = response.json()
+
+        # Check if 'optimizedOrder' is present in the response
+        if 'optimizedOrder' in data and data['optimizedOrder']:
+            optimized_order = data['optimizedOrder']
+
+            # Draw the route for each pair of locations in the optimized order
+            route_geometries = []
+            for i in range(len(optimized_order) - 1):
+                start_idx, end_idx = optimized_order[i], optimized_order[i + 1]
+
+                # Get the coordinates for the pair
+                start_coords, end_coords = all_coords[start_idx], all_coords[end_idx]
+
+                # Calculate the route geometry for the pair
+                route_geometry = get_route_geometry(start_coords, end_coords)
+
+                # Append the route geometry to the list
+                route_geometries.append(route_geometry)
+
+            return route_geometries
+    else:
+        # Handle API request failure
+        print(response.status_code)
+        print(response.text)
+        return None
+    
+def get_route_geometry(start_coords, end_coords):
     # Replace 'YOUR_API_KEY' with your actual TomTom API key
     api_key = 'XMnfj9I0Mi7gwOGlLf6MMjGGBTvzIIh6'
     # api_key = settings.TOM_API_KEY
 
     # TomTom Routing API endpoint
     version_number = 1
-    locations = ':'.join([f"{lat},{lon}" for lon, lat in pickup_coords] + [f"{drop_coords[1]},{drop_coords[0]}"])
-    print("locations:", locations)
+    locations = f"{start_coords[1]},{start_coords[0]}:{end_coords[1]},{end_coords[0]}"
     content_type = 'json'  # You can change this if needed
     endpoint = f'https://api.tomtom.com/routing/{version_number}/calculateRoute/{locations}/{content_type}'
-    print("endpoint:", endpoint)
+
     # Parameters for the API request
     params = {
         'key': api_key,
@@ -129,13 +194,21 @@ def get_route_data(*pickup_coords, drop_coords):
             # Handle the case when 'routes' is not found in the data
             route_geometry = None
 
-        # Convert the data to GeoJSON format
+        return route_geometry
+    else:
+        # Handle API request failure
+        print(response.status_code)
+        print(response.text)
+        return None
+
+def get_geojson_data(*pickup_coords, drop_coords, geojson):
+     # Convert the data to GeoJSON format
         geojson_data = {
             "type": "Feature",
             "properties": {},
             "geometry": {
                 "type": "LineString",
-                "coordinates": route_geometry
+                "coordinates": geojson
             }
         }
 
@@ -144,11 +217,6 @@ def get_route_data(*pickup_coords, drop_coords):
             'drop_coords': [drop_coords[1], drop_coords[0]],
             'route_geometry': geojson_data,
         }
-    else:
-        # Handle API request failure
-        print(response.status_code)
-        print(response.text)
-        return None
 
 def search_location(request):
     if request.method == 'GET':
