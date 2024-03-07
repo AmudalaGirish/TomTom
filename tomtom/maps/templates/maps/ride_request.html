@@ -12,10 +12,6 @@
         href="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps.css" />
     <script type="text/javascript"
         src="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps-web.min.js"></script>
-    <!-- Add your TomTom API key (uncomment the following line and replace YOUR_API_KEY with your actual key) -->
-    <!-- <script>
-        var tomtomApiKey = "YOUR_API_KEY";
-    </script> -->
 </head>
 
 <body>
@@ -29,7 +25,6 @@
                     <!-- Add dropdown for client selection -->
                     <label for="client">Select Client:</label>
                     <select id="client" name="client">
-                        <!-- Options will be populated dynamically -->
                     </select>
                 </div>
                 <div class="form-group">
@@ -42,8 +37,7 @@
                 <div class="form-group">
                     <!-- Add dropdown for employee selection -->
                     <label for="employee">Select Employee:</label>
-                    <select id="employee" name="employee">
-                        <!-- Options will be populated dynamically -->
+                    <select id="employee" name="employee">>
                     </select>
                 </div>
                 <div class="form-group">
@@ -67,7 +61,7 @@
                     <div id="pickup-suggestions-2" class="suggestions"></div>
                 </div>
                 <button type="submit" class="btn-submit">Book</button>
-                
+
             </form>
         </div>
 
@@ -80,12 +74,13 @@
         var mapMarkers = [];
 
         function initMap() {
-            let center = [-33.9249, 18.4241];
+            let center = [77.6969, 13.02217];
             map = tt.map({
                 key: 'XMnfj9I0Mi7gwOGlLf6MMjGGBTvzIIh6',
                 // key: tomtomApiKey,
                 container: 'dynamic-map',
                 center: center,
+                pitch: 60,
                 zoom: 14,
             });
 
@@ -97,16 +92,16 @@
         function searchLocation(type) {
             let inputElement = type === 'pickup' ? document.getElementById('{{ form.pickup_address.id_for_label }}') :
                 document.getElementById('{{ form.drop_address.id_for_label }}');
-        
+
             console.log(`searchLocation called for type: ${type}`);
-        
+
             if (!inputElement) {
                 console.error(`Input element not found for type: ${type}`);
                 return;
             }
-        
+
             let query = inputElement.value;
-        
+
             // AJAX request to the backend
             fetch(`/maps/search_location/?query=${query}`)
                 .then(response => response.json())
@@ -151,7 +146,7 @@
             document.getElementById('id_pickup_address').addEventListener('input', function () {
                 searchLocation('pickup');
             });
-        
+
             document.getElementById('id_drop_address').addEventListener('input', function () {
                 searchLocation('drop');
             });
@@ -220,7 +215,7 @@
         function updateAutocompleteDropdown(inputElement, suggestions, type) {
             const suggestionsContainer = document.getElementById(type + '-suggestions');
             suggestionsContainer.innerHTML = '';
-        
+
             if (suggestions.length > 0) {
                 const list = document.createElement('ul');
                 suggestions.forEach((suggestion) => {

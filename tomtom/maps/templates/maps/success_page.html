@@ -47,14 +47,19 @@
         console.log('Route Geometry:', routeGeometry);
         console.log('Route Coordinates:', routeGeometry.geometry.coordinates);
 
-
         function initMap() {
-            let center = [(pickup_lat + drop_lat) / 2, (pickup_lon + drop_lon) / 2];
+            //let center = [(pickup_lat + drop_lat) / 2, (pickup_lon + drop_lon) / 2];
+            let center = [pickup_lon, pickup_lat];
+            console.log('center:', center)
             map = tt.map({
                 key: 'XMnfj9I0Mi7gwOGlLf6MMjGGBTvzIIh6',
                 container: 'dynamic-map',
                 center: center,
-                //zoom: 14,
+                bearing: 0,
+                maxZoom: 21,
+                minZoom: 1,
+                pitch: 60,
+                zoom: 12
             });
 
             map.on('load', () => {
@@ -66,51 +71,10 @@
                 var pickupMarker2 = new tt.Marker({ color: 'orange' }).setLngLat([pickup_lon_2, pickup_lat_2]).addTo(map);
                 var dropMarker = new tt.Marker({ color: 'red' }).setLngLat([drop_lon, drop_lat]).addTo(map);
 
-                // Add markers for every 20th coordinate
-                //every20thCoords.forEach(coord => {
-                  //  var marker = new tt.Marker({ color: 'purple' }).setLngLat(coord).addTo(map);
-                //});
-
                 try {
-                    var routeGeometry = {
-                        type: 'Feature',
-                        geometry: {
-                            type: 'LineString',
-                            coordinates: geomatryCoordinates,
-                        },
-                    };
-
-                    // Check if the routeGeometry is a valid GeoJSON object
-                    if (isValidGeoJSON(routeGeometry)) {
-                        map.addLayer({
-                            'id': 'route',
-                            'type': 'line',
-                            'source': {
-                                'type': 'geojson',
-                                'data': routeGeometry,
-                            },
-                            'layout': {
-                                'line-join': 'round',
-                                'line-cap': 'round',
-                            },
-                            'paint': {
-                                'line-color': '#3887be',
-                                'line-width': 8,
-                                'line-opacity': 0.8,
-                            },
-                        });
-                        console.log('Route layer added successfully!');
-                    } else {
-                        console.error('Invalid GeoJSON format. Creating a simple LineString.');
-
-                        // Attempt to create a LineString GeoJSON
-                        var coordinates = [
-                            [pickup_lon, pickup_lat],
-                            [pickup_lon_1, pickup_lat_1],
-                            [pickup_lon_2, pickup_lat_2],
-                            [drop_lon, drop_lat]
-                        ];
-                        routeGeometry = {
+                    // Iterate through each set of coordinates and add route layer
+                    geomatryCoordinates.forEach((coordinates, index) => {
+                        var routeGeometry = {
                             type: 'Feature',
                             geometry: {
                                 type: 'LineString',
@@ -118,55 +82,88 @@
                             },
                         };
 
-                        map.addLayer({
-                            'id': 'route',
-                            'type': 'line',
-                            'source': {
-                                'type': 'geojson',
-                                'data': routeGeometry,
-                            },
-                            'layout': {
-                                'line-join': 'round',
-                                'line-cap': 'round',
-                            },
-                            'paint': {
-                                'line-color': '#3887be',
-                                'line-width': 8,
-                                'line-opacity': 0.8,
-                            },
-                        });
-                        console.log('Route layer added successfully with new GeoJSON.');
-                    }
+                        // Check if the routeGeometry is a valid GeoJSON object
+                        if (isValidGeoJSON(routeGeometry)) {
+                            map.addLayer({
+                                'id': `route-${index}`,
+                                'type': 'line',
+                                'source': {
+                                    'type': 'geojson',
+                                    'data': routeGeometry,
+                                },
+                                'layout': {
+                                    'line-join': 'round',
+                                    'line-cap': 'round',
+                                },
+                                'paint': {
+                                    'line-color': '#3887be',
+                                    'line-width': 8,
+                                    'line-opacity': 0.8,
+                                },
+                            });
+                            console.log(`Route layer ${index} added successfully!`);
+                        } else {
+                            console.error(`Invalid GeoJSON format for route ${index}. Creating a simple LineString.`);
+
+                            // Attempt to create a LineString GeoJSON
+                            var simpleRouteGeometry = {
+                                type: 'Feature',
+                                geometry: {
+                                    type: 'LineString',
+                                    coordinates: coordinates,
+                                },
+                            };
+
+                            map.addLayer({
+                                'id': `route-${index}`,
+                                'type': 'line',
+                                'source': {
+                                    'type': 'geojson',
+                                    'data': simpleRouteGeometry,
+                                },
+                                'layout': {
+                                    'line-join': 'round',
+                                    'line-cap': 'round',
+                                },
+                                'paint': {
+                                    'line-color': '#3887be',
+                                    'line-width': 8,
+                                    'line-opacity': 0.8,
+                                },
+                            });
+                            console.log(`Route layer ${index} added successfully with new GeoJSON.`);
+                        }
+                    });
                 } catch (error) {
                     console.error('Error handling GeoJSON:', error);
                 }
-            });
 
-            // Add event listener to the "Show Nearby Employees" button
-            document.getElementById('showNearbyEmployeesBtn').addEventListener('click', function () {
-                // Make an AJAX request to get nearby employees
-                fetch(`/maps/get_nearby_employees/?pickup_lon=${pickup_lon}&pickup_lat=${pickup_lat}&drop_lon=${drop_lon}&drop_lat=${drop_lat}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        const nearbyEmployees = data.nearby_employees;
-                        // Add markers for nearby employees on the map
-                        console.log(typeof nearbyEmployees);
-                        console.log(nearbyEmployees);
-                        nearbyEmployees.forEach(employee => {
-                            var marker = new tt.Marker({ color: 'black' }).setLngLat([employee.longitude, employee.latitude]);
-                            // Create a popup
-                            var popup = new tt.Popup().setHTML(`<p>${employee.name}</p>`);
+                // Add event listener to the "Show Nearby Employees" button
+                document.getElementById('showNearbyEmployeesBtn').addEventListener('click', function () {
+                    // Make an AJAX request to get nearby employees
+                    fetch(`/maps/get_nearby_employees/?pickup_lon=${pickup_lon}&pickup_lat=${pickup_lat}&drop_lon=${drop_lon}&drop_lat=${drop_lat}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            const nearbyEmployees = data.nearby_employees;
+                            // Add markers for nearby employees on the map
+                            console.log(typeof nearbyEmployees);
+                            console.log(nearbyEmployees);
+                            nearbyEmployees.forEach(employee => {
+                                var marker = new tt.Marker({ color: 'black' }).setLngLat([employee.longitude, employee.latitude]);
+                                // Create a popup
+                                var popup = new tt.Popup().setHTML(`<p>${employee.name}</p>`);
 
-                            // Add the popup to the marker
-                            marker.setPopup(popup);
+                                // Add the popup to the marker
+                                marker.setPopup(popup);
 
-                            // Add the marker to the map
-                            marker.addTo(map);
+                                // Add the marker to the map
+                                marker.addTo(map);
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error fetching nearby employees:', error);
                         });
-                    })
-                    .catch(error => {
-                        console.error('Error fetching nearby employees:', error);
-                    });
+                });
             });
         }
 

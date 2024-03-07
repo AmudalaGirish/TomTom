@@ -8,9 +8,7 @@ from django.conf import settings
 from .models import Employee, Client
 from .forms import EmployeeForm, ClientForm
 from django.views.decorators.http import require_GET
-from django.db.models import F, Func, FloatField
 import math 
-from math import radians, sin, cos, sqrt, atan2
 import requests
 import json
 
