@@ -31,6 +31,8 @@
                     {{ form.pickup_address.label_tag }}
                     {{ form.pickup_address }}
                     <button type="button" onclick="getCurrentLocation()">Use Current Location</button>
+                    <!-- Add a button for selecting map location -->
+                    <button type="button" onclick="enableMapSelection('pickup')">Select on Map</button>
                     <!-- Add a container for suggestions dropdown -->
                     <div id="pickup-suggestions" class="suggestions"></div>
                 </div>
@@ -72,6 +74,8 @@
     <script type="text/javascript">
         var map;
         var mapMarkers = [];
+        var pickup_lon = 77.6969;
+        var pickup_lat = 13.02217;
 
         function initMap() {
             let center = [77.6969, 13.02217];
@@ -87,6 +91,54 @@
             map.on('load', () => {
                 console.log('Map loaded successfully!');
             });
+        }
+
+        function enableMapSelection(type) {
+            // Reset existing markers
+            mapMarkers.forEach(marker => marker.remove());
+            mapMarkers = [];
+
+            // Add a marker for map selection
+            const marker = new tt.Marker().setLngLat([pickup_lon, pickup_lat]).addTo(map);
+
+            // Add a click event listener to the map
+            map.on('click', (event) => {
+                const coordinates = [event.lngLat.lng, event.lngLat.lat];
+                marker.setLngLat(coordinates);
+
+                // Fetch address from coordinates
+                fetchAddressFromCoordinates(coordinates)
+                    .then(address => {
+                        // Update the corresponding input field with the fetched address
+                        const inputElement = type === 'pickup' ?
+                            document.getElementById('{{ form.pickup_address.id_for_label }}') :
+                            document.getElementById('{{ form.drop_address.id_for_label }}');
+
+                        if (inputElement) {
+                            inputElement.value = address;
+                        }
+
+                        // You can also update the map marker based on the fetched address
+                        updateMarker(type, coordinates);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching address:', error);
+                    });
+            });
+        }
+
+        function fetchAddressFromCoordinates(coordinates) {
+            // Use reverse geocoding or other methods to fetch address from coordinates
+            // For simplicity, let's assume a function fetchAddressFromCoordinates is available
+            const apiKey = 'XMnfj9I0Mi7gwOGlLf6MMjGGBTvzIIh6';
+            const reverseGeocodingApiUrl = `https://api.tomtom.com/search/2/reverseGeocode/${coordinates[1]},${coordinates[0]}.json?key=${apiKey}`;
+
+            return fetch(reverseGeocodingApiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    const address = data.addresses[0].address.freeformAddress;
+                    return address;
+                });
         }
 
         function searchLocation(type) {

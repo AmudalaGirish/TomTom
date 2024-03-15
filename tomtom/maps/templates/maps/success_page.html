@@ -13,6 +13,12 @@
         href="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps.css" />
     <script type="text/javascript"
         src="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps-web.min.js"></script>
+    <!-- <style> 
+        #map { 
+            width: 100vw; 
+            height: 100vh; 
+        } 
+    </style> -->
 </head>
 
 <body>
@@ -35,6 +41,7 @@
         var drop_lat = {{ drop_lat }};
         var routeGeometry = {{ route_data.route_geometry| safe }};
         var geomatryCoordinates = routeGeometry.geometry.coordinates;
+        const API_KEY = 'XMnfj9I0Mi7gwOGlLf6MMjGGBTvzIIh6';
 
         console.log('Pickup Longitude:', pickup_lon);
         console.log('Pickup Latitude:', pickup_lat);
@@ -52,16 +59,18 @@
             let center = [pickup_lon, pickup_lat];
             console.log('center:', center)
             map = tt.map({
-                key: 'XMnfj9I0Mi7gwOGlLf6MMjGGBTvzIIh6',
+                key: API_KEY,
                 container: 'dynamic-map',
                 center: center,
                 bearing: 0,
                 maxZoom: 21,
                 minZoom: 1,
                 pitch: 60,
-                zoom: 12
+                zoom: 12,
+                style: `https://api.tomtom.com/style/1/style/*?map=2/basic_street-satellite&poi=2/poi_dynamic-satellite&key=${API_KEY}`
             });
-
+            map.addControl(new tt.FullscreenControl());
+            map.addControl(new tt.NavigationControl());
             map.on('load', () => {
                 console.log('Map loaded successfully!');
 
