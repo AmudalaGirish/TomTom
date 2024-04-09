@@ -8,9 +8,10 @@ from django.conf import settings
 from .models import Employee, Client
 from .forms import EmployeeForm, ClientForm
 from django.views.decorators.http import require_GET
-import math 
+import math
 import requests
 import json
+
 
 def ride_request(request):
     if request.method == 'POST':
@@ -45,14 +46,17 @@ def ride_request(request):
                                     drop_lon=ride.drop_longitude, drop_lat=ride.drop_latitude)
                 except IntegrityError as e:
                     # Handle IntegrityError, for example, duplicate entries
-                    messages.error(request, 'IntegrityError: {}'.format(str(e)))
+                    messages.error(
+                        request, 'IntegrityError: {}'.format(str(e)))
             else:
                 # Handle the case when coordinates are not available
-                messages.error(request, 'Error getting coordinates. Please try again.')
+                messages.error(
+                    request, 'Error getting coordinates. Please try again.')
     else:
         form = RideForm()
 
     return render(request, 'maps/ride_request.html', {'form': form})
+
 
 def success_page(request, pickup_lon, pickup_lat, pickup_lon_1, pickup_lat_1, pickup_lon_2, pickup_lat_2, drop_lon, drop_lat):
     # Convert parameters to float
@@ -66,9 +70,11 @@ def success_page(request, pickup_lon, pickup_lat, pickup_lon_1, pickup_lat_1, pi
     drop_lat = float(drop_lat)
 
     # Call a function to get the route data
-    route_metries = get_optimized_route([pickup_lon, pickup_lat], [pickup_lon_1, pickup_lat_1], [pickup_lon_2, pickup_lat_2], drop_coords=[drop_lon, drop_lat])
-    
-    route_data = get_geojson_data([pickup_lon, pickup_lat], [pickup_lon_1, pickup_lat_1], [pickup_lon_2, pickup_lat_2], drop_coords=[drop_lon, drop_lat], geojson=route_metries)
+    route_metries = get_optimized_route([pickup_lon, pickup_lat], [pickup_lon_1, pickup_lat_1], [
+                                        pickup_lon_2, pickup_lat_2], drop_coords=[drop_lon, drop_lat])
+
+    route_data = get_geojson_data([pickup_lon, pickup_lat], [pickup_lon_1, pickup_lat_1], [
+                                  pickup_lon_2, pickup_lat_2], drop_coords=[drop_lon, drop_lat], geojson=route_metries)
 
     return render(request, 'maps/success_page.html', {
         'pickup_lon': pickup_lon,
@@ -81,6 +87,7 @@ def success_page(request, pickup_lon, pickup_lat, pickup_lon_1, pickup_lat_1, pi
         'drop_lat': drop_lat,
         'route_data': route_data,
     })
+
 
 def get_optimized_route(*pickup_coords, drop_coords):
     version_number = 1
@@ -97,7 +104,8 @@ def get_optimized_route(*pickup_coords, drop_coords):
     }
 
     # Include the drop location in the waypoints
-    payload['waypoints'].append({'point': {'latitude': drop_coords[1], 'longitude': drop_coords[0]}})
+    payload['waypoints'].append(
+        {'point': {'latitude': drop_coords[1], 'longitude': drop_coords[0]}})
 
     # TomTom Waypoint Optimization API endpoint
     endpoint = f'https://api.tomtom.com/routing/waypointoptimization/{version_number}'
@@ -111,11 +119,12 @@ def get_optimized_route(*pickup_coords, drop_coords):
     json_payload = json.dumps(payload)
 
     # Make the API request with POST method and data using the session
-    response = requests.post(endpoint, params=params, data=json_payload, headers={'Content-Type': 'application/json'})
-    
+    response = requests.post(endpoint, params=params, data=json_payload, headers={
+                             'Content-Type': 'application/json'})
+
     # Combine pickup coordinates and drop coordinates into a single list
     all_coords = list(pickup_coords) + [drop_coords]
-    
+
     if response.status_code == 200:
         # Parse the JSON response
         data = response.json()
@@ -144,7 +153,8 @@ def get_optimized_route(*pickup_coords, drop_coords):
         print(response.status_code)
         print(response.text)
         return None
-    
+
+
 def get_route_geometry(start_coords, end_coords):
     # Replace 'YOUR_API_KEY' with your actual TomTom API key
     api_key = 'XMnfj9I0Mi7gwOGlLf6MMjGGBTvzIIh6'
@@ -159,8 +169,14 @@ def get_route_geometry(start_coords, end_coords):
     # Parameters for the API request
     params = {
         'key': api_key,
+        "routeType": "fastest",
+        "traffic": "true",
+        "instructionsType": "text",
         'computeBestOrder': 'true',  # Optional: Calculate the best order for the waypoints
         'maxAlternatives': 0,       # Optional: Number of alternative routes
+        "routeRepresentation": "polyline",
+        "computeTravelTimeFor": "all",
+        "travelMode": "motorcycle",
     }
 
     # Make the API request
@@ -182,7 +198,8 @@ def get_route_geometry(start_coords, end_coords):
                 # Check if 'points' is present in the leg
                 if 'points' in leg and leg['points']:
                     # Extract latitude and longitude from each point in the 'points' array
-                    route_geometry = [[point['longitude'], point['latitude']] for point in leg['points']]
+                    route_geometry = [
+                        [point['longitude'], point['latitude']] for point in leg['points']]
                 else:
                     route_geometry = None
             else:
@@ -199,29 +216,31 @@ def get_route_geometry(start_coords, end_coords):
         print(response.text)
         return None
 
-def get_geojson_data(*pickup_coords, drop_coords, geojson):
-     # Convert the data to GeoJSON format
-        geojson_data = {
-            "type": "Feature",
-            "properties": {},
-            "geometry": {
-                "type": "LineString",
-                "coordinates": geojson
-            }
-        }
 
-        return {
-            'pickup_coords': [[coord[1], coord[0]] for coord in pickup_coords],
-            'drop_coords': [drop_coords[1], drop_coords[0]],
-            'route_geometry': geojson_data,
+def get_geojson_data(*pickup_coords, drop_coords, geojson):
+    # Convert the data to GeoJSON format
+    geojson_data = {
+        "type": "Feature",
+        "properties": {},
+        "geometry": {
+            "type": "LineString",
+            "coordinates": geojson
         }
+    }
+
+    return {
+        'pickup_coords': [[coord[1], coord[0]] for coord in pickup_coords],
+        'drop_coords': [drop_coords[1], drop_coords[0]],
+        'route_geometry': geojson_data,
+    }
+
 
 def search_location(request):
     if request.method == 'GET':
         query = request.GET.get('query', '')
         api_key = 'XMnfj9I0Mi7gwOGlLf6MMjGGBTvzIIh6'
         # api_key = settings.TOM_API_KEY
-        
+
         # Country code for India
         india_country_code = 'IND'
         # search API (TomTom)
@@ -242,13 +261,15 @@ def search_location(request):
                 'longitude': result.get('position', {}).get('lon', ''),
             } for result in data.get('results', [])]
 
-            return JsonResponse({'locations':locations})
+            return JsonResponse({'locations': locations})
 
         return JsonResponse({'error': 'Failed to fetch results'}, status=500)
-    
+
+
 def emp_list(request):
     employees = Employee.objects.all()
-    return render(request, 'maps/emp_list.html', {'employees':employees})
+    return render(request, 'maps/emp_list.html', {'employees': employees})
+
 
 def add_employee(request):
     if request.method == 'POST':
@@ -260,11 +281,13 @@ def add_employee(request):
     else:
         form = EmployeeForm()
 
-    return render(request, 'maps/add_emp.html', {'form':form})
+    return render(request, 'maps/add_emp.html', {'form': form})
+
 
 def client_list(request):
     clients = Client.objects.all()
-    return render(request, 'maps/client_list.html', {'clients':clients})
+    return render(request, 'maps/client_list.html', {'clients': clients})
+
 
 def add_client(request):
     if request.method == 'POST':
@@ -276,17 +299,22 @@ def add_client(request):
     else:
         form = EmployeeForm()
 
-    return render(request, 'maps/add_client.html', {'form':form})
+    return render(request, 'maps/add_client.html', {'form': form})
+
 
 def get_clients(request):
     clients = Client.objects.all()
-    client_data = [{'id': client.id, 'name': client.name} for client in clients]
+    client_data = [{'id': client.id, 'name': client.name}
+                   for client in clients]
     return JsonResponse({'clients': client_data})
+
 
 def get_employees(request):
     employees = Employee.objects.all()
-    employee_data = [{'id': employee.id, 'name': employee.name} for employee in employees]
+    employee_data = [{'id': employee.id, 'name': employee.name}
+                     for employee in employees]
     return JsonResponse({'employees': employee_data})
+
 
 def get_client_details(request, pk):
     if request.method == 'GET':
@@ -303,7 +331,8 @@ def get_client_details(request, pk):
             return JsonResponse({'error': 'Client not found'}, status=404)
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=405)
-    
+
+
 def get_employee_details(request, pk):
     if request.method == 'GET':
         try:
@@ -323,15 +352,18 @@ def get_employee_details(request, pk):
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
+
 @require_GET
 def get_nearby_employees(request):
 
-    pickup_coords = [request.GET.get('pickup_lon'), request.GET.get('pickup_lat')]
+    pickup_coords = [request.GET.get(
+        'pickup_lon'), request.GET.get('pickup_lat')]
     drop_coords = [request.GET.get('drop_lon'), request.GET.get('drop_lat')]
 
     # Check if coordinates are valid
     if None in pickup_coords or None in drop_coords:
-        print(f"Invalid coordinates - Pickup: {pickup_coords}, Drop: {drop_coords}")
+        print(
+            f"Invalid coordinates - Pickup: {pickup_coords}, Drop: {drop_coords}")
         return JsonResponse({'error': 'Invalid coordinates'})
     # Convert coordinates to floats for further processing
     pickup_coords = [float(coord) for coord in pickup_coords]
@@ -339,9 +371,10 @@ def get_nearby_employees(request):
 
     # Ensure that the coordinates are valid floats
     if any(math.isnan(coord) for coord in pickup_coords) or any(math.isnan(coord) for coord in drop_coords):
-        print(f"Invalid coordinates after conversion to floats - Pickup: {pickup_coords}, Drop: {drop_coords}")
+        print(
+            f"Invalid coordinates after conversion to floats - Pickup: {pickup_coords}, Drop: {drop_coords}")
         return JsonResponse({'error': 'Invalid coordinates'})
-    
+
     nearby_employees = Employee.objects.all()
 
     for employee in nearby_employees:
@@ -358,7 +391,8 @@ def get_nearby_employees(request):
 
     # Add print statements to debug the values of each employee
     for employee in filtered_employees:
-        print(f"Employee Name: {employee.name}, Latitude: {employee.latitude}, Longitude: {employee.longitude}")
+        print(
+            f"Employee Name: {employee.name}, Latitude: {employee.latitude}, Longitude: {employee.longitude}")
 
     # Create a list of dictionaries containing employee details
     nearby_employees_list = [

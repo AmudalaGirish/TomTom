@@ -61,13 +61,16 @@
             map = tt.map({
                 key: API_KEY,
                 container: 'dynamic-map',
+                //stylesVisibility: {
+                  //  trafficIncidents: true
+                //},
                 center: center,
                 bearing: 0,
                 maxZoom: 21,
                 minZoom: 1,
                 pitch: 60,
                 zoom: 12,
-                style: `https://api.tomtom.com/style/1/style/*?map=2/basic_street-satellite&poi=2/poi_dynamic-satellite&key=${API_KEY}`
+                //style: `https://api.tomtom.com/style/1/style/*?map=2/basic_street-satellite&poi=2/poi_dynamic-satellite&key=${API_KEY}`
             });
             map.addControl(new tt.FullscreenControl());
             map.addControl(new tt.NavigationControl());
