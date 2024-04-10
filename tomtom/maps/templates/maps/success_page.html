@@ -13,12 +13,8 @@
         href="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps.css" />
     <script type="text/javascript"
         src="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps-web.min.js"></script>
-    <!-- <style> 
-        #map { 
-            width: 100vw; 
-            height: 100vh; 
-        } 
-    </style> -->
+    <!-- Include Razorpay SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 
 <body>
@@ -27,6 +23,24 @@
         <div class="map-container" id="dynamic-map"></div>
     </div>
     <button id="showNearbyEmployeesBtn">Show Nearby Employees</button>
+
+     <!-- Razorpay Payment Button -->
+     <form action="{% url 'payment_form' %}" method="POST">
+        {% csrf_token %}
+        <script src="https://checkout.razorpay.com/v1/checkout.js"
+            data-key="{{ razorpay_key }}"
+            data-amount="{{ amount }}"
+            data-currency="INR"
+            data-name="Your Company Name"
+            data-description="Payment for Ride Request"
+            data-image="{% static 'path_to_your_logo.png' %}"
+            data-prefill.name="Customer Name"
+            data-prefill.email="customer@example.com"
+            data-theme.color="#F37254">
+        </script>
+        <input type="hidden" value="{{ amount }}" name="amount">
+        <button type="submit">Pay Now</button>
+    </form>
 
     <!-- Map Initialization Script -->
     <script type="text/javascript">
@@ -184,6 +198,36 @@
         }
 
         initMap();  // Call the initMap function
+
+        // Razorpay payment button functionality
+        document.getElementById('razorpayPaymentBtn').addEventListener('click', function () {
+            initiateRazorpayPayment();
+        });
+
+        function initiateRazorpayPayment() {
+            var options = {
+                key: 'YOUR_RAZORPAY_API_KEY', // Replace with your Razorpay API Key
+                amount: 10000, // Amount in paise (10000 paise = ₹100)
+                currency: 'INR',
+                name: 'Your Company Name',
+                description: 'Payment for TomTom Service',
+                handler: function (response) {
+                    alert('Payment successful! Payment ID: ' + response.razorpay_payment_id);
+                    // Redirect or perform any other action after successful payment
+                },
+                prefill: {
+                    name: 'Customer Name',
+                    email: 'customer@example.com',
+                    contact: '9876543210'
+                },
+                theme: {
+                    color: '#3399cc'
+                }
+            };
+
+            var rzp = new Razorpay(options);
+            rzp.open();
+        }
     </script>
 
 </body>

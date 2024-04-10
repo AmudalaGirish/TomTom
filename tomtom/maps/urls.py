@@ -14,5 +14,7 @@ urlpatterns = [
     path('get_employees/', get_employees, name='get_employees'),
     path('get_client_details/<int:pk>/', get_client_details, name='get_client_details'),
     path('get_employee_details/<int:pk>/', get_employee_details, name='get_employee_details'),
-     path('get_nearby_employees/', get_nearby_employees, name='get_nearby_employees'),
+    path('get_nearby_employees/', get_nearby_employees, name='get_nearby_employees'),
+    path('payment_form/', payment_form, name='payment_form'),
+    path('payment_status/', payment_status, name='payment_status'),
 ]

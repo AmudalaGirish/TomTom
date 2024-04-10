@@ -5,12 +5,71 @@ from .utils import get_coordinates, haversine
 from django.db import IntegrityError
 from django.contrib import messages
 from django.conf import settings
-from .models import Employee, Client
+from .models import Employee, Client, Payment
 from .forms import EmployeeForm, ClientForm
 from django.views.decorators.http import require_GET
 import math
 import requests
 import json
+import razorpay
+from django.views.decorators.csrf import csrf_exempt
+
+
+
+def payment_form(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        amount = int(request.POST.get('amount')) * 100  # Convert to paise for Razorpay
+
+        # Initialize Razorpay client
+        client = razorpay.Client(
+            auth=("", ""))
+
+        # Create Razorpay order
+
+        response_payment = client.order.create(
+            dict(amount=amount, currency='INR'))
+
+        print(response_payment)
+        order_id = response_payment['id']
+        order_status = response_payment['status']
+        if order_status == 'created':
+            amount = amount / 100  # Convert back to Rupees
+            payment = Payment(
+                name=name, amount=amount, order_id=order_id)
+            payment.save()
+            response_payment['name'] = name
+            response_payment['email'] = "example@gmail.com"
+            return render(request, 'maps/payment_form.html', {'payment': response_payment})
+
+    return render(request, 'maps/payment_form.html')
+
+@csrf_exempt
+def payment_status(request):
+    response = request.POST
+    print(response)
+    params_dict = {
+        'razorpay_order_id': response['razorpay_order_id'],
+        'razorpay_payment_id': response['razorpay_payment_id'],
+        'razorpay_signature': response['razorpay_signature']
+    }
+
+    # client instance
+    client = razorpay.Client(
+        auth=("", ""))
+
+    try:
+        status = client.utility.verify_payment_signature(params_dict)
+        payment = Payment.objects.get(order_id=response['razorpay_order_id'])
+        payment.razorpay_payment_id = response['razorpay_payment_id']
+        payment.paid = True
+        payment.save()
+        return render(request, 'maps/payment_status.html', {'status': True})
+    except:
+        status = "Payment Failed"
+        print(status)
+    print(response)
+    return render(request, 'maps/payment_status.html', {'status': False})
 
 
 def ride_request(request):
