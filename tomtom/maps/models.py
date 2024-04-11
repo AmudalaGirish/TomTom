@@ -63,9 +63,9 @@ class Payment(models.Model):
     name = models.CharField(max_length=100, verbose_name=_('Name'))
     amount = models.IntegerField()
     order_id = models.CharField(max_length=100, verbose_name=_('Order ID'))
-    razorpay_payment_id = models.CharField(max_length=100, verbose_name=_('Razorpay Payment ID'))
+    razorpay_payment_id = models.CharField(
+        max_length=100, verbose_name=_('Razorpay Payment ID'))
     paid = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return self.name
-   

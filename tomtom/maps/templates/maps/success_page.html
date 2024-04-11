@@ -24,20 +24,14 @@
     </div>
     <button id="showNearbyEmployeesBtn">Show Nearby Employees</button>
 
-     <!-- Razorpay Payment Button -->
-     <form action="{% url 'payment_form' %}" method="POST">
+    <!-- Razorpay Payment Button -->
+    <form action="{% url 'payment_form' %}" method="POST">
         {% csrf_token %}
-        <script src="https://checkout.razorpay.com/v1/checkout.js"
-            data-key="{{ razorpay_key }}"
-            data-amount="{{ amount }}"
-            data-currency="INR"
-            data-name="Your Company Name"
-            data-description="Payment for Ride Request"
-            data-image="{% static 'path_to_your_logo.png' %}"
-            data-prefill.name="Customer Name"
-            data-prefill.email="customer@example.com"
-            data-theme.color="#F37254">
-        </script>
+        <script src="https://checkout.razorpay.com/v1/checkout.js" data-key="{{ razorpay_key }}"
+            data-amount="{{ amount }}" data-currency="INR" data-name="Your Company Name"
+            data-description="Payment for Ride Request" data-image="{% static 'path_to_your_logo.png' %}"
+            data-prefill.name="Customer Name" data-prefill.email="customer@example.com" data-theme.color="#F37254">
+            </script>
         <input type="hidden" value="{{ amount }}" name="amount">
         <button type="submit">Pay Now</button>
     </form>
@@ -76,7 +70,7 @@
                 key: API_KEY,
                 container: 'dynamic-map',
                 //stylesVisibility: {
-                  //  trafficIncidents: true
+                //  trafficIncidents: true
                 //},
                 center: center,
                 bearing: 0,

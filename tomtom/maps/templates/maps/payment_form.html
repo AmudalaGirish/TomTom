@@ -76,32 +76,21 @@
         </form>
 
         {% if payment %}
-            <!-- Razorpay Payment Button -->
-            <form action="{% url 'payment_status' %}" method="POST">
-                {% csrf_token %}
-                <script src="https://checkout.razorpay.com/v1/checkout.js" 
-                        data-key="rzp_test_6CCIFMIjOZytSE"
-                        data-amount="{{ payment.amount }}" 
-                        data-currency="{{ payment.currency }}" 
-                        data-order_id="{{ payment.id }}"
-                        data-buttontext="Pay with Razorpay" 
-                        data-name="Tom Route" 
-                        data-description="Payment for Ride Request"
-                        data-image="path_to_your_logo.png" 
-                        data-prefill.name="{{ payment.name }}"
-                        data-prefill.email="{{ payment.email }}" 
-                        data-theme.color="#F37254">
-                    </script>
-                <!-- <input type="hidden" value="{{ amount }}" name="amount"> -->
-            </form>
+        <!-- Razorpay Payment Button -->
+        <form action="{% url 'payment_status' %}" method="POST">
+            {% csrf_token %}
+            <script src="https://checkout.razorpay.com/v1/checkout.js" data-key="rzp_test_6CCIFMIjOZytSE"
+                data-amount="{{ payment.amount }}" data-currency="{{ payment.currency }}"
+                data-order_id="{{ payment.id }}" data-buttontext="Pay with Razorpay" data-name="Tom Route"
+                data-description="Payment for Ride Request" data-image="path_to_your_logo.png"
+                data-prefill.name="{{ payment.name }}" data-prefill.email="{{ payment.email }}"
+                data-theme.color="#F37254">
+                </script>
+            <!-- <input type="hidden" value="{{ amount }}" name="amount"> -->
+        </form>
 
         {% endif %}
     </div>
 </body>
 
 </html>
-
-
-
-
-

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,6 +16,7 @@
             min-height: 100vh;
             background-color: #f4f4f4;
         }
+
         .container {
             max-width: 400px;
             width: 100%;
@@ -24,16 +26,19 @@
             background-color: #fff;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
+
         .success {
             color: green;
             font-size: 24px;
             font-weight: bold;
         }
+
         .failure {
             color: red;
             font-size: 24px;
             font-weight: bold;
         }
+
         .btn {
             margin-top: 20px;
             padding: 10px 20px;
@@ -44,23 +49,25 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
+
         .btn:hover {
             background-color: #0056b3;
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         {% if status %}
-            <div class="success">Payment Successful!</div>
-            <!-- You can display additional information or actions for successful payment -->
+        <div class="success">Payment Successful!</div>
+        <!-- You can display additional information or actions for successful payment -->
         {% else %}
-            <div class="failure">Payment Failed!</div>
-            <!-- You can display additional information or actions for failed payment -->
+        <div class="failure">Payment Failed!</div>
+        <!-- You can display additional information or actions for failed payment -->
         {% endif %}
         <button class="btn" onclick="goToPaymentForm()">Go Back to Payment Form</button>
     </div>
-    
+
     <script>
         function goToPaymentForm() {
             // Redirect to the payment form page
@@ -68,5 +75,5 @@
         }
     </script>
 </body>
-</html>
 
+</html>

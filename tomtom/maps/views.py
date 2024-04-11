@@ -15,15 +15,15 @@ import razorpay
 from django.views.decorators.csrf import csrf_exempt
 
 
-
 def payment_form(request):
     if request.method == 'POST':
         name = request.POST.get('name')
-        amount = int(request.POST.get('amount')) * 100  # Convert to paise for Razorpay
+        amount = int(request.POST.get('amount')) * \
+            100  # Convert to paise for Razorpay
 
         # Initialize Razorpay client
         client = razorpay.Client(
-            auth=("", ""))
+            auth=("rzp_test_6CCIFMIjOZytSE", "X4pvs6dYOXjZwcPu4pyr1N4O"))
 
         # Create Razorpay order
 
@@ -44,6 +44,7 @@ def payment_form(request):
 
     return render(request, 'maps/payment_form.html')
 
+
 @csrf_exempt
 def payment_status(request):
     response = request.POST
@@ -56,10 +57,11 @@ def payment_status(request):
 
     # client instance
     client = razorpay.Client(
-        auth=("", ""))
+        auth=("rzp_test_6CCIFMIjOZytSE", "X4pvs6dYOXjZwcPu4pyr1N4O"))
 
     try:
         status = client.utility.verify_payment_signature(params_dict)
+        print(status)
         payment = Payment.objects.get(order_id=response['razorpay_order_id'])
         payment.razorpay_payment_id = response['razorpay_payment_id']
         payment.paid = True
