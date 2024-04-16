@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation App</title>
+</head>
+
+<body>
+    <h1>Navigation App</h1>
+    <button id="navigateBtn">Go to Google Maps</button>
+
+    <script>
+        document.getElementById('navigateBtn').addEventListener('click', function () {
+            const currentLocation = 'current';
+            const waypoint1 = '12.987290,77.592130';
+            const waypoint2 = '12.953880,77.689650';
+            const dropoffCoords = '12.843870,77.665460';
+            // const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${dropoffCoords}&travelmode=driving`;
+            const googleMapsUrl = `https://www.google.com/maps/dir/${currentLocation}/${waypoint1}/${waypoint2}/${dropoffCoords}/?travelmode=driving`;
+
+            window.open(googleMapsUrl, '_blank');
+        });
+    </script>
+</body>
+
+</html>

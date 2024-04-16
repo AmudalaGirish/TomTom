@@ -69,3 +69,27 @@ class Payment(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+from django.db import models
+
+class Transaction(models.Model):
+    order_id = models.CharField(max_length=100, unique=True)
+    amount = models.IntegerField()
+    currency = models.CharField(max_length=3)
+    receipt_id = models.CharField(max_length=40, blank=True, null=True)
+    notes = models.JSONField(blank=True, null=True)
+    partial_payment = models.BooleanField(default=False)
+    first_payment_min_amount = models.IntegerField(blank=True, null=True)
+    order_status = models.CharField(max_length=20, choices=[
+        ('created', 'Created'), ('attempted', 'Attempted'), ('paid', 'Paid')
+    ])
+    razorpay_payment_id = models.CharField(max_length=100, unique=True)
+    razorpay_signature = models.CharField(max_length=120)
+    payment_status = models.CharField(max_length=20, choices=[
+        ('created', 'Created'), ('authorized', 'Authorized'), ('captured', 'Captured'),
+        ('refunded', 'Refunded'), ('failed', 'Failed')
+    ])
+    payment_created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Order: {self.order_id}"

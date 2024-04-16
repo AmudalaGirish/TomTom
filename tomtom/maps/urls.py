@@ -22,4 +22,7 @@ urlpatterns = [
          name='get_nearby_employees'),
     path('payment_form/', payment_form, name='payment_form'),
     path('payment_status/', payment_status, name='payment_status'),
+    path('goto/', goto, name='goto'),
+    path('payment_link/', generate_payment_link, name='payment_link'),
+
 ]

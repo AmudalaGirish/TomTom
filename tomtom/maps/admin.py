@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Ride, Employee, Client, Payment
+from .models import Ride, Employee, Client, Payment, Transaction
 from .forms import EmployeeForm, ClientForm
 
 
@@ -21,9 +21,13 @@ class ClientAdmin(admin.ModelAdmin):
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ('name', 'amount', 'order_id',
                     'razorpay_payment_id', 'paid')
+    
+class TransactionAdmin(admin.ModelAdmin):
+    list_display = ('order_id', 'amount', 'currency', 'receipt_id', 'notes')
 
 
 admin.site.register(Ride, RideAdmin)
 admin.site.register(Employee, EmployeeAdmin)
 admin.site.register(Client, ClientAdmin)
 admin.site.register(Payment, PaymentAdmin)
+admin.site.register(Transaction, TransactionAdmin)

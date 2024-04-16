@@ -12,7 +12,8 @@ DEBUG = True
 
 # TOM_API_KEY = env('API_KEY')
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["*", "192.168.25.242"]
+
 
 INSTALLED_APPS = [
     'channels',
