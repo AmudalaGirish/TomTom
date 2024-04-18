@@ -24,5 +24,8 @@ urlpatterns = [
     path('payment_status/', payment_status, name='payment_status'),
     path('goto/', goto, name='goto'),
     path('payment_link/', generate_payment_link, name='payment_link'),
-
+    path('payment_verify_link/', verify_payment_link_signature, name='payment_verify_link'),
+    path('create_invoice/', create_invoice, name='create_invoice'),
+    path('generate_invoice/', generate_invoice, name='generate_invoice'),
+    path('generate-pdf/', generate_pdf, name='generate_pdf'),
 ]

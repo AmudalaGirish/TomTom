@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice</title>
+</head>
+<body>
+    <div class="invoice-container">
+        <h1 style="text-align: left;">Varna Travels</h1>
+        <p style="text-align: left; font-size: 13px;">
+            #778, SM Arcade, AECS Layout, "B" Block, Singasandra Post, Bangalore - 560 068 | Email: varnatravels@gmail.com, info@varnatravels.com | <br>
+            Phone: +91 80-25743355
+        </p>
+        <hr>
+        <h3 style="text-align: center;">TAX INVOICE</h3>
+        <hr>
+        <div style="display: flex;">
+            <div style="flex: 1;">
+                <h5>Client Name<br></h5>
+                <h5>
+                    Client Address, <br>
+                    Client Address Line 2, <br>
+                    State - PIN<br>
+                    GST NO: Client GST Number<br>
+                    <span class='bold_label'>State of Supply: </span> 29-Karnataka<br>
+                </h5>
+            </div>
+            <div style="flex: 1;">
+                <h5>
+                    *Original for recipient <br>
+                    <span class='bold_label'>Invoice Number</span>: Invoice Number<br>
+                    <span class='bold_label'>Invoice Date</span>: Invoice Date<br>
+                    <span class='bold_label'>Due Date</span>: Invoice Date<br>
+                    <span class='bold_label'>Invoice Period</span>: Invoice Period<br>
+                </h5>
+            </div>
+        </div>
+        <div style="margin-bottom: 20px; margin-top: 20px;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>SL.NO</th>
+                        <th>DESCRIPTION</th>
+                        <th>Rate</th>
+                        <th>QTY</th>
+                        <th>AMOUNT</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="height: 60px;">
+                        <td>1</td>
+                        <td>
+                            Trip Request ID <span class='bold_label'>Booked by: </span>Booked Name | <span class='bold_label'>Date: </span>Trip Time<br>
+                            <span class='bold_label'>Vehicle Type: </span>Car | <span class='bold_label'>Vehicle Number</span> | <span class='bold_label'>Trip Type: </span>Trip Type<br>
+                            <span class='bold_label'>Passengers: </span>Passenger 1, Passenger 2
+                        </td>
+                        <td>Base Price</td>
+                        <td>1</td>
+                        <td>Base Price</td>
+                    </tr>
+                    <!-- Additional rows for extra distance, extra time, driver allowance, toll, parking, entry tax -->
+                    <!-- Total and tax rows -->
+                </tbody>
+            </table>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <h5>
+                1. All cheque's/draft to be drawn in favour of: VARNA TRAVELS<br>
+                2. Duty slips/statement of usage enclosed in Original.<br>
+                3. All disputes are subject to Bangalore jurisdiction only.<br>
+                4. We are registered as an MSME in accordance with government regulations. (REG NO: UDYAM-KR-02-0055863).<br>
+                5. If there is any clarification regarding this invoice, please revert within seven days of submission; otherwise, it will be considered as final.
+            </h5>
+            <h5 style="margin-top: 10px;">
+                <span class='bold_label'>GSTIN: </span>Client GST Number | 
+                <span class='bold_label'> SAC/HSN/Accounting code: </span> |
+                <span class='bold_label'> PAN: </span>Client PAN Number
+            </h5>
+            <h5 style="margin-top: 10px;">
+                <span class='bold_label' style="text-decoration: underline;">Bank Details</span><br>
+                <span class='bold_label'>Account No.:</span> Account Number<br>
+                <span class='bold_label'>Bank: </span> Bank Name (Branch Name) | 
+                <span class='bold_label'> IFSC: </span> IFSC Code<br>
+                Please issue cheques in name of<span class='bold_label'> "VARNA TRAVELS". </span>
+            </h5>
+        </div>
+        <!-- Payment link display -->
+        <p id="paymentLink"></p>
+        <hr>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                generatePaymentLink(); // Automatically call the function when the page is loaded
+
+                function generatePaymentLink() {
+                    let amount = 1500; // You can dynamically set this value from user input or other sources
+                    let description = "trip"; // You can dynamically set this value
+                    let customerName = "Girish"; // You can dynamically set this value
+                    let email = "girishamudala91@gmail.com"; // You can dynamically set this value
+                    let contact = "+917349084841"; // You can dynamically set this value
+
+                    fetch('/maps/payment_link/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({
+                            amount: amount,
+                            description: description,
+                            customer_name: customerName,
+                            email: email,
+                            contact: contact
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data); // Log the response data for debugging
+                        document.getElementById('paymentLink').textContent = "Payment Link: " + data.payment_link;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                }
+
+                // Function to get CSRF token from cookies
+                function getCookie(name) {
+                    let cookieValue = null;
+                    if (document.cookie && document.cookie !== '') {
+                        const cookies = document.cookie.split(';');
+                        for (let i = 0; i < cookies.length; i++) {
+                            const cookie = cookies[i].trim();
+                            // Get CSRF token from cookie
+                            if (cookie.startsWith(name + '=')) {
+                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                break;
+                            }
+                        }
+                    }
+                    return cookieValue;
+                }
+            });
+        </script>
+    </div>
+</body>
+</html>

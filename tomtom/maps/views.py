@@ -5,7 +5,7 @@ from .utils import get_coordinates, haversine
 from django.db import IntegrityError
 from django.contrib import messages
 from django.conf import settings
-from .models import Employee, Client, Payment
+from .models import Employee, Client, Payment, SampleInvoice
 from .forms import EmployeeForm, ClientForm
 from django.views.decorators.http import require_GET
 import math
@@ -73,6 +73,111 @@ def payment_status(request):
         print(status)
     print(response)
     return render(request, 'maps/payment_status.html', {'status': False})
+
+def goto(request):
+    return render(request, 'maps/goto.html')
+
+def generate_payment_link(request):
+    if request.method == 'POST':
+        try:
+            payload = json.loads(request.body)
+            amount = int(payload.get('amount', 0)) * 100
+            description = payload.get('description', '')
+            customer_name = payload.get('customer_name', '')
+            email = payload.get('email', '')
+            contact = payload.get('contact', '')
+
+            # Initialize the Razorpay client with your API credentials
+            client = razorpay.Client(auth=("rzp_test_6CCIFMIjOZytSE", "X4pvs6dYOXjZwcPu4pyr1N4O"))
+
+            # Create the payment link using the Razorpay API
+            response = client.payment_link.create({
+                "amount": amount,
+                "currency": "INR",
+                "description": description,
+                "customer": {
+                    "name": customer_name,
+                    "email": email,
+                    "contact": contact
+                },
+                "notify": {
+                    "sms": True,
+                    "email": True
+                },
+                "reminder_enable": True,
+                "callback_url": "http://127.0.0.1:8000/maps/payment_verify_link",
+                "callback_method": "get"
+            })
+            payment_link = response['short_url']
+
+            return JsonResponse({'payment_link': payment_link})
+
+        except json.JSONDecodeError as e:
+            return JsonResponse({'error': 'Invalid JSON format'}, status=400)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+def verify_payment_link_signature(request):
+    
+    client = razorpay.Client(auth=("rzp_test_6CCIFMIjOZytSE", "X4pvs6dYOXjZwcPu4pyr1N4O"))
+    param_dict = {
+        'payment_link_id' : request.GET.get('razorpay_payment_link_id'),
+        'payment_link_reference_id' : request.GET.get('razorpay_payment_link_reference_id'),
+        'payment_link_status' : request.GET.get('razorpay_payment_link_status'),
+        'razorpay_payment_id' : request.GET.get('razorpay_payment_id'),
+        'razorpay_signature' : request.GET.get('razorpay_signature'),
+    }
+
+    verification = client.utility.verify_payment_link_signature(param_dict)
+
+    if verification:
+        # Db related stuff
+        return JsonResponse({'success': True, 'Payment_status': 'Payment verified'})
+
+def create_invoice(request):
+    return render(request, 'maps/invoice.html')
+
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph
+from reportlab.lib.enums import TA_LEFT
+
+def generate_invoice(request):
+    # Get form data from request
+    payload = json.loads(request.body)
+    amount = payload.get('amount')
+    description = payload.get('description')
+    customer_name = payload.get('customer_name')
+    payment_link = payload.get('payment_link')
+
+    # Create PDF invoice using ReportLab
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="invoice.pdf"'
+
+    # Create a PDF document
+    doc = SimpleDocTemplate(response, pagesize=letter)
+    story = []
+
+    # Define styles for the payment link
+    link_style = ParagraphStyle(name='LinkStyle', fontName='Helvetica', fontSize=12, textColor='blue', alignment=TA_LEFT)
+
+    # Add content to the PDF
+    story.append(Paragraph(f'Invoice for: {customer_name}'))
+    story.append(Paragraph(f'Amount: {amount} INR'))
+    story.append(Paragraph(f'Description: {description}'))
+
+    # Add payment link as a clickable hyperlink
+    if payment_link:
+        story.append(Paragraph(f'Payment Link'))
+        story.append(Paragraph(f'             : <a href="{payment_link}">{payment_link}</a>', link_style))
+
+    # Build the PDF document
+    doc.build(story)
+    
+    return response
+
 
 
 def ride_request(request):
@@ -468,28 +573,28 @@ def get_nearby_employees(request):
 
     return JsonResponse({'nearby_employees': nearby_employees_list})
 
-def goto(request):
-    return render(request, 'maps/goto.html')
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
+from django.http import HttpResponse
+from django.template.loader import get_template
+from django.conf import settings
+from io import BytesIO
+from xhtml2pdf import pisa 
 
-def generate_payment_link(request):
-    if request.method == 'GET':
-        # Extract data from POST request (amount, description, etc.)
-        # amount = request.POST.get('amount')
-        # description = request.POST.get('description')
-        amount = 1900*100
-        description = "payment link generated by SDK"
-        # Initialize Razorpay client
-        client = razorpay.Client(auth=("rzp_test_6CCIFMIjOZytSE", "X4pvs6dYOXjZwcPu4pyr1N4O"))
-        # Create payment link
-        response = client.payment_link.create({
-            'amount': amount,
-            'currency': 'INR',
-            'description': description,
-            'expire_by': int(time.time()) + 24*60*60,  # Link expires in 24 hours
-        })
-        payment_link = response['short_url']  # Extract short URL of the payment link
-        return JsonResponse({'payment_link': payment_link})
-    return JsonResponse({'error': 'Method not allowed'}, status=405)
+def generate_pdf(request):
+    # Load your HTML template and render it with context data
+    template = get_template('maps/sample_invoice.html')  # Update the template path
+    html = template.render({})
 
-def payment_link(request):
-    return render(request, 'maps/payment_link.html')
+    # Create a PDF buffer using BytesIO
+    pdf_buffer = BytesIO()
+
+    # Use pisa to convert HTML to PDF and save to the buffer
+    pisa.CreatePDF(html, dest=pdf_buffer)
+
+    # Reset the buffer and return the PDF as an HttpResponse
+    pdf_buffer.seek(0)
+    response = HttpResponse(pdf_buffer, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="invoice.pdf"'
+    return response

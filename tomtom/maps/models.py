@@ -93,3 +93,22 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"Order: {self.order_id}"
+
+class SampleInvoice(models.Model):
+    invoice_id = models.CharField(max_length=20, unique=True)
+    invoice_date = models.DateField()
+    invoice_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    customer_name = models.CharField(max_length=100)
+    customer_address = models.TextField()
+    item = models.CharField(max_length=100)
+    description = models.TextField()
+    quantity = models.IntegerField()
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    invoice_status = models.CharField(max_length=20, choices=[
+        ('created', 'Created'), ('paid', 'Paid')
+    ])
+    invoice_created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Invoice: {self.invoice_id}"

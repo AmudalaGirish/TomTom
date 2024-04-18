@@ -96,3 +96,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ReportLab A4 Size of PDF
+PAGE_SIZE = (595.275, 841.89)
