@@ -27,5 +27,5 @@ urlpatterns = [
     path('payment_verify_link/', verify_payment_link_signature, name='payment_verify_link'),
     path('create_invoice/', create_invoice, name='create_invoice'),
     path('generate_invoice/', generate_invoice, name='generate_invoice'),
-    path('generate-pdf/', generate_pdf, name='generate_pdf'),
+    path('generate_sample_invoice/', generate_sample_invoice, name='generate_sample_invoice'),
 ]

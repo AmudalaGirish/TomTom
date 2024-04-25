@@ -1,4 +1,4 @@
-{% load custom_filters %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -75,9 +75,9 @@
 <body>
     <script>
         function generatePaymentLink() {
-            let amount = '{{ invoice.total }}';
+            let amount = '12345';
             
-            let customerName = '{{ client.client_name }}';
+            let customerName = 'Infosys';
 
             fetch('/maps/payment_link/', {
                 method: 'POST',
@@ -161,26 +161,24 @@
 
         <div class="invoice-details">
             <div class="invoice-details-left">
-                {% if invoice.invoice_ref_id == "Employee" %}
-                    <p>{{ invoice.items.0.trip_request.trip_passengers.0.passenger.passenger_name }} C/o</p>
-                {% endif %}
-                <p>{{ client.client_name }}</p>
+                
+                <p>Infosys</p>
                 <p>
-                    {{ client.address }} <br />
-                    {{ client.address1 }} <br />
-                    {{ client.state }} - {{ client.pincode }} <br />
-                    GST NO: {{ client.gst_number }} <br />
+                    Shantipura main road <br />
+                    Bengaluru, <br />
+                    Karnataka - 560100 <br />
+                    GST NO: AA7373373737A <br />
                     <span class='bold-label'>State of Supply:</span> 29-Karnataka <br />
                 </p>
             </div>
             <div class="invoice-details-right">
                 <p>
                     *Original for recipient <br />
-                    <span class='bold-label'>Invoice Number:</span> {{ invoice.invoice_no }}<br />
+                    <span class='bold-label'>Invoice Number:</span> VT/202324/30<br />
                     <!-- < date should format as DD/MM/YY ></date> -->
-                    <span class='bold-label'>Invoice Date:</span> {{ invoice.invoice_date|get_date_format }}<br />
-                    <span class='bold-label'>Due Date:</span> {{ invoice.invoice_date|get_date_format}}<br />
-                    <span class='bold-label'>Invoice Period:</span> {{ invoice.period }}<br />
+                    <span class='bold-label'>Invoice Date:</span> 18/04/24<br />
+                    <span class='bold-label'>Due Date:</span> 18/04/24<br />
+                    <span class='bold-label'>Invoice Period:</span> 2024-3-20,2024-4-30<br />
                 </p>
             </div>
         </div>
@@ -196,69 +194,227 @@
                 </tr>
             </thead>
             <tbody>
-                {% for item in invoice.items %}
+                
                     <tr>
-                        <td>{{ forloop.counter }}</td>
+                        <td>1</td>
                         <td>
                             <div>
-                                <span>{{ item.trip_request.trip_request_id }}</span>
-                                <span class='bold-label'> Booked by: </span>{{ item.trip_request.booked_name }} | 
-                                <!-- <span class='bold-label'>Date: </span>{{ item.trip_request.trip_time|date:"Y-m-d H:i:s" }}<br /> -->
-                                <span class='bold-label'>Date: </span>{{ item.trip_request.trip_time }}<br />
-                                <span class='bold-label'>Vehicle Type: </span>{{ item.trip_request.vehicle_model }} | 
-                                <span class='bold-label'>{{ item.trip_request.vehicle_number }}</span> | 
-                                <span class='bold-label'>Trip Type: </span>{{ item.trip_request.trip_type }}<br />
-                                <span class='bold-label'>Passengers: </span>{% for pass in item.trip_request.trip_passengers %}
-                                    {{ pass.passenger.passenger_name }}{% if not forloop.last %},{% endif %}{% endfor %}<br />
+                                <span>VT00428</span>
+                                <span class='bold-label'> Booked by: </span>Ragu | 
+                                <!-- <span class='bold-label'>Date: </span><br /> -->
+                                <span class='bold-label'>Date: </span>2024-03-20T13:30:00Z<br />
+                                <span class='bold-label'>Vehicle Type: </span>Innova | 
+                                <span class='bold-label'>KA01MS2324</span> | 
+                                <span class='bold-label'>Trip Type: </span>Drop<br />
+                                <span class='bold-label'>Passengers: </span>
+                                    Rahul,
+                                    Virat<br />
                                     <a href="">
                                         Click to view trip sheet
                                     </a>
                             </div>
                         </td>
-                        <td>{{ item.trip_request.base_price }}</td>
+                        <td>0.00</td>
                         <td>1</td>
-                        <td>{{ item.trip_request.base_price }}</td>
+                        <td>0.00</td>
                     </tr>
-                    {% if item.trip_request.extra_distance %}
+                    
                         <tr>
                             <td></td>
                             <td>Extra Km</td>
-                            <td>{{ item.trip_request.rate_for_extra_km }}</td>
-                            <td>{{ item.trip_request.extra_distance }}</td>
-                            <td>{{ item.trip_request.rate_for_extra_km|intmultiply:item.trip_request.extra_distance }}</td>   
+                            <td>1</td>
+                            <td>123</td>
+                            <td>123</td>   
                         </tr>
-                    {% endif %}
-                    {% if item.trip_request.extra_time %}
+                    
+                    
                     <tr>
                         <td></td>
                         <td>Extra Hours</td>
-                        <td>{{ item.trip_request.rate_for_extra_hours }}</td>
-                        <td>{{ item.trip_request.extra_time }}</td>
-                        <td>{{ item.trip_request.rate_for_extra_hours|intmultiply:item.trip_request.extra_time }}</td>   
+                        <td>100</td>
+                        <td>1</td>
+                        <td>100</td>   
                     </tr>
-                    {% endif %}
-                    {% if item.trip_request.driver_betta %}
+                    
+                    
                     <tr>
                         <td></td>
                         <td>Driver Allowance</td>
                         <td></td>
                         <td></td>
-                        <td>{{ item.trip_request.driver_betta }}</td>   
+                        <td>0.00</td>   
                     </tr>
-                    {% endif %}
-                    {% if item.trip_request.toll or item.trip_request.parking or item.trip_request.entry_tax %}
+                    
+                    
                     <tr>
                         <td></td>
                         <td>Toll, Parking & Entry Tax</td>
                         <td></td>
                         <td></td>
-                        <td>{{ item.trip_request.toll|add_three_values:item.trip_request.parking|add_three_values:item.trip_request.entry_tax }}</td>
+                        <td>35.0</td>
                     </tr>
-                    {% endif %}
-                {% endfor %}
+                    
+                
+                    <tr>
+                        <td>2</td>
+                        <td>
+                            <div>
+                                <span>VT00432</span>
+                                <span class='bold-label'> Booked by: </span>Ragu | 
+                                <!-- <span class='bold-label'>Date: </span><br /> -->
+                                <span class='bold-label'>Date: </span>2024-03-22T02:30:00Z<br />
+                                <span class='bold-label'>Vehicle Type: </span>Innova | 
+                                <span class='bold-label'>KA01MS2324</span> | 
+                                <span class='bold-label'>Trip Type: </span>Pickup<br />
+                                <span class='bold-label'>Passengers: </span>
+                                    Virat,
+                                    Rahul<br />
+                                    <a href="">
+                                        Click to view trip sheet
+                                    </a>
+                            </div>
+                        </td>
+                        <td>0.00</td>
+                        <td>1</td>
+                        <td>0.00</td>
+                    </tr>
+                    
+                        <tr>
+                            <td></td>
+                            <td>Extra Km</td>
+                            <td>0</td>
+                            <td>123</td>
+                            <td>0</td>   
+                        </tr>
+                    
+                    
+                    
+                    <tr>
+                        <td></td>
+                        <td>Driver Allowance</td>
+                        <td></td>
+                        <td></td>
+                        <td>0.00</td>   
+                    </tr>
+                    
+                    
+                    <tr>
+                        <td></td>
+                        <td>Toll, Parking & Entry Tax</td>
+                        <td></td>
+                        <td></td>
+                        <td>0.0</td>
+                    </tr>
+                    
+                
+                    <tr>
+                        <td>3</td>
+                        <td>
+                            <div>
+                                <span>VT00431</span>
+                                <span class='bold-label'> Booked by: </span>Ragu | 
+                                <!-- <span class='bold-label'>Date: </span><br /> -->
+                                <span class='bold-label'>Date: </span>2024-03-20T13:30:00Z<br />
+                                <span class='bold-label'>Vehicle Type: </span>Innova | 
+                                <span class='bold-label'>KA01MS2324</span> | 
+                                <span class='bold-label'>Trip Type: </span>Drop<br />
+                                <span class='bold-label'>Passengers: </span>
+                                    Virat,
+                                    Rahul<br />
+                                    <a href="">
+                                        Click to view trip sheet
+                                    </a>
+                            </div>
+                        </td>
+                        <td>0.00</td>
+                        <td>1</td>
+                        <td>0.00</td>
+                    </tr>
+                    
+                        <tr>
+                            <td></td>
+                            <td>Extra Km</td>
+                            <td>0</td>
+                            <td>123</td>
+                            <td>0</td>   
+                        </tr>
+                    
+                    
+                    
+                    <tr>
+                        <td></td>
+                        <td>Driver Allowance</td>
+                        <td></td>
+                        <td></td>
+                        <td>0.00</td>   
+                    </tr>
+                    
+                    
+                    <tr>
+                        <td></td>
+                        <td>Toll, Parking & Entry Tax</td>
+                        <td></td>
+                        <td></td>
+                        <td>0.0</td>
+                    </tr>
+                    
+                
+                    <tr>
+                        <td>4</td>
+                        <td>
+                            <div>
+                                <span>VT00434</span>
+                                <span class='bold-label'> Booked by: </span>Ragu | 
+                                <!-- <span class='bold-label'>Date: </span><br /> -->
+                                <span class='bold-label'>Date: </span>2024-03-25T13:30:00Z<br />
+                                <span class='bold-label'>Vehicle Type: </span>Sedan | 
+                                <span class='bold-label'>KA45X4567</span> | 
+                                <span class='bold-label'>Trip Type: </span>Drop<br />
+                                <span class='bold-label'>Passengers: </span>
+                                    Rahul,
+                                    Virat,
+                                    RamKumar<br />
+                                    <a href="">
+                                        Click to view trip sheet
+                                    </a>
+                            </div>
+                        </td>
+                        <td>1000.00</td>
+                        <td>1</td>
+                        <td>1000.00</td>
+                    </tr>
+                    
+                        <tr>
+                            <td></td>
+                            <td>Extra Km</td>
+                            <td>0</td>
+                            <td>123</td>
+                            <td>0</td>   
+                        </tr>
+                    
+                    
+                    
+                    <tr>
+                        <td></td>
+                        <td>Driver Allowance</td>
+                        <td></td>
+                        <td></td>
+                        <td>0.00</td>   
+                    </tr>
+                    
+                    
+                    <tr>
+                        <td></td>
+                        <td>Toll, Parking & Entry Tax</td>
+                        <td></td>
+                        <td></td>
+                        <td>0.0</td>
+                    </tr>
+                    
+                
                 <!-- Add total rows and calculations dynamically here based on data -->
                 <tr>
-                    <td>{{ invoice.items|length|add:1 }}</td>
+                    <td>5</td>
                     <td>Charges</td>
                     <td></td>
                     <td></td>
@@ -268,39 +424,39 @@
                     <td></td>
                     <td></td>
                     <td colspan="2" ><span class="bold-label">Taxable Sub Total</span></td>
-                    <td>{{ invoice.total_taxable }}</td>
+                    <td>0.00</td>
                 </tr>
                 <tr>
                     <td></td>
                     <td></td>
                     <td colspan="2" >CGST 2.5% - 2.5%</td>
-                    <td>{{ invoice.cgst_percentage }}</td>
+                    <td>0.00</td>
                 </tr>
                 <tr>
                     <td></td>
                     <td></td>
                     <td colspan="2" >SGST 2.5% - 2.5%</td>
-                    <td>{{ invoice.sgst_percentage }}</td>
+                    <td>0.00</td>
                 </tr>
                 <tr>
                     <td></td>
                     <td></td>
                     <td colspan="2" ><span class="bold-label">Non-Taxable Sub Total</span></td>
-                    <td>{{ invoice.total_not_taxable }}</td>
+                    <td>0.00</td>
                 </tr>
                 <tr>
                     <td></td>
                     <td></td>
                     <td colspan="2" ><span class="bold-label">Round Off</span></td>
-                    <td>{{ invoice.round_off }}</td>
+                    <td>0.00</td>
                 </tr>
                 <tr>
-                    <td colspan="2"><span class="bold-label">In words:</span>{{ invoice.total|number_to_words }}</td>
+                    <td colspan="2"><span class="bold-label">In words:</span>Twelve Thousand, Three Hundred And Forty-Five</td>
                     <td colspan="2"><span class="bold-label">TOTAL</span></td>
-                    <td>{{ invoice.total }}</td>
+                    <td>12345</td>
                 </tr>
                 <tr>
-                    <td colspan="2"><span class="bold-label">Payment Link:</span>{{ payment_link }}</td>
+                    <td colspan="2"><span class="bold-label">Payment Link:</span>https://rzp.io/i/ehuluMY1cQ</td>
                     <!-- <td colspan="3"><a href="#" id="payment_link" target="_blank">Loading...</a></td> -->
                     
                 </tr>
@@ -317,15 +473,15 @@
                     5. If there is any clarification regarding this invoice, please revert within seven days of submission; otherwise, it will be considered final.
                 </p>
                 <p style="margin-top: 10px;">
-                    <span class="bold-label">GSTIN:</span> {{ client.gst_number }} | 
+                    <span class="bold-label">GSTIN:</span> AA7373373737A | 
                     <span class="bold-label">SAC/HSN/Accounting code:</span> | 
-                    <span class="bold-label">PAN:</span> {{ client.pan_number }}
+                    <span class="bold-label">PAN:</span> HSGSYS839333
                 </p>
                 <p style="margin-top: 10px;">
                     <span class="bold-label" style="text-decoration: underline;">Bank Details</span><br />
-                    <span class="bold-label">Account No.:</span> {{ bank.account_no }}<br />
-                    <span class="bold-label">Bank:</span> {{ bank.bank_name }} ({{ bank.branch_name }}) | 
-                    <span class="bold-label">IFSC:</span> {{ bank.ifsc_code }}<br />
+                    <span class="bold-label">Account No.:</span> 123456789<br />
+                    <span class="bold-label">Bank:</span> HDFC Bank (Bengaluru) | 
+                    <span class="bold-label">IFSC:</span> HDFC000123<br />
                     Please issue cheques in the name of <span class="bold-label">"VARNA TRAVELS".</span>
                 </p>
             </div>
