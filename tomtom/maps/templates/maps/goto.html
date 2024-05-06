@@ -15,10 +15,10 @@
         document.getElementById('navigateBtn').addEventListener('click', function () {
             const currentLocation = 'current';
             const waypoint1 = '12.987290,77.592130';
-            const waypoint2 = '12.953880,77.689650';
+            const waypoint2 = '12.953880,77.689657';
             const dropoffCoords = '12.843870,77.665460';
             // const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${dropoffCoords}&travelmode=driving`;
-            const googleMapsUrl = `https://www.google.com/maps/dir/${currentLocation}/${waypoint1}/${waypoint2}/${dropoffCoords}/?travelmode=driving`;
+            const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&waypoints=${waypoint1}|${waypoint2}&destination=${dropoffCoords}&travelmode=driving`;
 
             window.open(googleMapsUrl, '_blank');
         });

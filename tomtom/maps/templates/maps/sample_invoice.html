@@ -31,20 +31,19 @@
         .invoice-header p {
             font-size: 14px;
         }
-
+        
         .invoice-details {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
+            overflow: hidden;
         }
-
+        
         .invoice-details-left {
-            flex: 1;
+            float: left;
+            width: 50%;
         }
-
+        
         .invoice-details-right {
-            flex: 1;
-            text-align: right;
+            float: right;
+            width: 30%; 
         }
 
         table {
@@ -329,10 +328,10 @@
                     Please issue cheques in the name of <span class="bold-label">"VARNA TRAVELS".</span>
                 </p>
             </div>
-            <div style="flex: 30%; text-align: right;">
-                <p>For Varna Travels</p>
-                <p>Authorized Signatory</p>
-            </div>
+    <div style="flex: 30%; text-align: right;">
+        <p>For Varna Travels</p>
+        <p>Authorized Signatory</p>
+    </div>
             </div>
         </div>
     </div>
