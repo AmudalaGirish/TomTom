@@ -16,6 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 import time
 
 
+
 def payment_form(request):
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -888,10 +889,15 @@ def generate_sample_invoice(request):
         # Convert HTML to PDF using pdfkit
         pdfkit.from_file(html_file_path, pdf_file_path, configuration=config)
 
+        # Add password protection using PyPDF2
+        user_password = '12345'
+        # owner_password = '1234'
+        pdf_file = encrypt_pdf(pdf_file_path, user_password)
+
         
         print("PDF generated")
 
-        return pdf_file_path
+        return pdf_file
     except Exception as e:
         print(f"Error generating PDF: {e}")
 
@@ -939,8 +945,27 @@ def generate_sample_invoice(request):
 
     # context = {'invoice': invoice, 'driver': driver, 'client': client, 'bank': bank, 'payment_link':payment_link}
     # return render(request, 'maps/sample_invoice.html', context)
+from PyPDF2 import *
+def encrypt_pdf(pdf_file_path, user_password):
+    try:
+        encrypted_pdf_path = pdf_file_path.replace('.pdf', '_encrypted.pdf')
+        pdf_reader = PdfReader(pdf_file_path)
+        pdf_writer = PdfWriter()
 
+        for page_num in range(len(pdf_reader.pages)):  # Use getNumPages() instead of pages
+            pdf_writer.add_page(pdf_reader.pages[page_num])
 
+        pdf_writer.encrypt(user_password, use_128bit=True)
+
+        with open(encrypted_pdf_path, 'wb') as encrypted_pdf_file:
+            pdf_writer.write(encrypted_pdf_file)
+
+        os.remove(pdf_file_path)
+        os.rename(encrypted_pdf_path, pdf_file_path)
+        print("PDF encrypted")
+        return pdf_file_path
+    except Exception as e:
+        print(f"Error: {e}")
 
 
 def ride_request(request):
