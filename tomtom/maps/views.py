@@ -19,26 +19,26 @@ from .models import FCMDevice, PushSubscription
 from webpush import send_user_notification
 
 
-@csrf_exempt  # For demo purposes only, consider proper CSRF protection in production
-def send_notification(request):
-    if request.method == 'POST':
-        # Assuming you receive the FCM registration ID and message from the request
-        registration_id = request.POST.get('registration_id')
-        message = request.POST.get('message')
+# @csrf_exempt  # For demo purposes only, consider proper CSRF protection in production
+# def send_notification(request):
+#     if request.method == 'POST':
+#         # Assuming you receive the FCM registration ID and message from the request
+#         registration_id = request.POST.get('registration_id')
+#         message = request.POST.get('message')
 
-        if registration_id and message:
-            try:
-                # Create or get the FCM device based on the registration ID
-                device, created = FCMDevice.objects.get_or_create(registration_id=registration_id)
-                # Send the message
-                device.send_message(message)
-                return JsonResponse({'success': True, 'message': 'Push notification sent successfully'})
-            except Exception as e:
-                return JsonResponse({'success': False, 'message': str(e)})
-        else:
-            return JsonResponse({'success': False, 'message': 'Missing registration ID or message'})
-    else:
-        return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
+#         if registration_id and message:
+#             try:
+#                 # Create or get the FCM device based on the registration ID
+#                 device, created = FCMDevice.objects.get_or_create(registration_id=registration_id)
+#                 # Send the message
+#                 device.send_message(message)
+#                 return JsonResponse({'success': True, 'message': 'Push notification sent successfully'})
+#             except Exception as e:
+#                 return JsonResponse({'success': False, 'message': str(e)})
+#         else:
+#             return JsonResponse({'success': False, 'message': 'Missing registration ID or message'})
+#     else:
+#         return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
 
 
 def index(request):
