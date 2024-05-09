@@ -24,6 +24,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'maps',
+    "push_notifications",
+    'webpush',
 ]
 
 MIDDLEWARE = [
@@ -77,6 +79,17 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+WEBPUSH_SETTINGS = {
+    "VAPID_PUBLIC_KEY": "BBLpa4tFlajDEvCgX_HMIftK55C6vq-coMvNnIlnOPnXvkCDRdNRQrqqcWWo4K8pZpwlChSgF8GkmpJrJrqLjE0",
+    "VAPID_PRIVATE_KEY":"XYG1ZvV4IgotAp_--iR7wfxhJSF4G_hUdOd7MvonHQc",
+    "VAPID_ADMIN_EMAIL": "girishamudala91@gmail.com"
+}
+
+PUSH_NOTIFICATIONS_SETTINGS = {
+    "FCM_API_KEY": "AIzaSyDkSVsVdByEFIqQiMgEPvHq5DQPJGFLgO0",
+    "FCM_PROJECT_ID": "travel-master-97715",
+}
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'

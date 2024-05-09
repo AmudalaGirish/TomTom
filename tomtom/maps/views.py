@@ -14,8 +14,67 @@ import json
 import razorpay
 from django.views.decorators.csrf import csrf_exempt
 import time
+from .models import FCMDevice, PushSubscription
+
+from webpush import send_user_notification
 
 
+@csrf_exempt  # For demo purposes only, consider proper CSRF protection in production
+def send_notification(request):
+    if request.method == 'POST':
+        # Assuming you receive the FCM registration ID and message from the request
+        registration_id = request.POST.get('registration_id')
+        message = request.POST.get('message')
+
+        if registration_id and message:
+            try:
+                # Create or get the FCM device based on the registration ID
+                device, created = FCMDevice.objects.get_or_create(registration_id=registration_id)
+                # Send the message
+                device.send_message(message)
+                return JsonResponse({'success': True, 'message': 'Push notification sent successfully'})
+            except Exception as e:
+                return JsonResponse({'success': False, 'message': str(e)})
+        else:
+            return JsonResponse({'success': False, 'message': 'Missing registration ID or message'})
+    else:
+        return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
+
+
+def index(request):
+    return render(request, 'maps/index.html')
+
+def subscribe(request):
+    if request.method == 'POST':
+        # Get subscription info from POST request (this will depend on your frontend implementation)
+        subscription_info = request.POST.get('subscription_info')
+        # user_id = request.user.id  # Example: Get the user ID from the request (assuming user is authenticated)
+
+        # Save the subscription info to your database
+        if subscription_info:
+            subscription = PushSubscription.objects.create(
+                subscription_info=subscription_info
+            )
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'error': 'Invalid subscription data'})
+    else:
+        return JsonResponse({'error': 'Invalid request'})
+    
+def send_notification(request):
+    if request.method == 'POST':
+        # For POC, assume subscription_info is directly provided in the request
+        subscription_info = request.POST.get('subscription_info')
+        payload = {"head": "Welcome!", "body": "Hello World"}
+
+        try:
+            # Send notification to the user
+            send_user_notification(subscription_info, payload)
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'error': str(e)})
+    else:
+        return JsonResponse({'error': 'Invalid request'})
 
 def payment_form(request):
     if request.method == 'POST':

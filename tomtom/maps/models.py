@@ -112,3 +112,18 @@ class SampleInvoice(models.Model):
 
     def __str__(self):
         return f"Invoice: {self.invoice_id}"
+    
+class FCMDevice(models.Model):
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    registration_id = models.CharField(max_length=255)  # FCM registration token
+
+    def __str__(self):
+        return self.registration_id
+    
+
+class PushSubscription(models.Model):
+    subscription_info = models.JSONField()  # JSON field to store the subscription info
+
+    def __str__(self):
+        return f'Push Subscription for User {self.user_id}'
+

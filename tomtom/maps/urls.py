@@ -28,4 +28,8 @@ urlpatterns = [
     path('create_invoice/', create_invoice, name='create_invoice'),
     path('generate_invoice/', generate_invoice, name='generate_invoice'),
     path('generate_sample_invoice/', generate_sample_invoice, name='generate_sample_invoice'),
+    path('send_notification/', send_notification, name='send_notification'),
+    path('index/', index, name='index'),
+    path('subscribe/', subscribe, name='sub'),
+    path('send_notification/', send_notification, name='send_notification'),
 ]

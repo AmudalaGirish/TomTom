@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Push Notifications</title>
+    {% load webpush_notifications %}
+    {% webpush_header %}
+</head>
+<body>
+    <h1>Welcome to Web Push Notifications</h1>
+    <p>This is a demo page for web push notifications.</p>
+    
+    <!-- Web Push Notification Button -->
+    <button id="subscribeBtn" onclick="subscribeUser()">Subscribe to Notifications</button>
+
+    <!-- Trigger Notification Button -->
+    <button id="triggerBtn" onclick="triggerNotification()">Trigger Notification</button>
+    
+    
+    <script>
+        // Function to subscribe the user to web push notifications
+        function subscribeUser() {
+            if ('serviceWorker' in navigator && 'PushManager' in window) {
+                navigator.serviceWorker.register('/maps/service-worker.js')
+                    .then(function(registration) {
+                        return registration.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey: 'BBLpa4tFlajDEvCgX_HMIftK55C6vq-coMvNnIlnOPnXvkCDRdNRQrqqcWWo4K8pZpwlChSgF8GkmpJrJrqLjE0'
+                        });
+                    })
+                    .then(function(subscription) {
+                        // Send the subscription info to your backend (POST request)
+                        sendSubscriptionToServer(subscription);
+                    })
+                    .catch(function(error) {
+                        console.error('Error subscribing:', error);
+                    });
+            } else {
+                console.error('Web push not supported');
+            }
+        }
+
+        // Function to send the subscription info to the server
+        function sendSubscriptionToServer(subscription) {
+            fetch('maps/subscribe/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}' // Include Django CSRF token if using CSRF protection
+                },
+                body: JSON.stringify({ subscription_info: subscription })
+            })
+            .then(function(response) {
+                if (response.ok) {
+                    console.log('Subscription successful');
+                    alert('Subscription successful!');
+                } else {
+                    console.error('Failed to save subscription');
+                    alert('Failed to save subscription');
+                }
+            })
+            .catch(function(error) {
+                console.error('Error sending subscription:', error);
+                alert('Error sending subscription');
+            });
+        }
+
+            // Function to trigger a test notification
+            function triggerNotification() {
+                fetch('maps/send_notification/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}' // Include Django CSRF token if using CSRF protection
+                    },
+                    body: JSON.stringify({ message: 'This is a test notification' })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        console.log('Notification triggered successfully');
+                        alert('Notification triggered successfully');
+                    } else {
+                        console.error('Failed to trigger notification');
+                        alert('Failed to trigger notification');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error triggering notification:', error);
+                    alert('Error triggering notification');
+                });
+            }
+    </script>
+</body>
+</html>
