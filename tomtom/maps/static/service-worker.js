@@ -12,9 +12,10 @@ self.addEventListener('install', event => {
   self.addEventListener('push', event => {
     const payload = event.data ? event.data.text() : 'Default notification';
     event.waitUntil(
-      self.registration.showNotification('Web Push Notification', {
+      self.registration.showNotification('Travel Master', {
         body: payload,
-        icon: '/static/notification-icon.png' // Path to your notification icon
+        //icon: '/static/images/icon.png', // Path to your notification icon
+        //badge: '/static/images/badge.png' // Path to your notification badge
       })
     );
   });

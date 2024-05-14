@@ -17,8 +17,9 @@ import time
 from .models import FCMDevice, PushSubscription
 
 from webpush import send_user_notification
-
+import os
 from pywebpush import webpush, WebPushException
+
 
 
 # @csrf_exempt  # For demo purposes only, consider proper CSRF protection in production
@@ -54,12 +55,20 @@ def subscribe(request):
         subscription_info = data.get('subscription_info')
         print('subscription_info:', subscription_info)
         # user_id = request.user.id  # Example: Get the user ID from the request (assuming user is authenticated)
+        user_id = 1  # Example: Hard-coded user ID
 
         # Save the subscription info to your database
-        if subscription_info:
-            subscription = PushSubscription.objects.create(
-                subscription_info=subscription_info
+        if subscription_info and user_id is not None:
+            subscription, created = PushSubscription.objects.update_or_create(
+                user_id=user_id,
+                defaults={'subscription_info': subscription_info}
             )
+
+            if created:
+                print("A new subscription was created.")
+            else:
+                print("An existing subscription was updated.")
+
             return JsonResponse({'success': True})
         else:
             return JsonResponse({'error': 'Invalid subscription data'})
@@ -68,32 +77,28 @@ def subscribe(request):
     
 def send_notification(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        subscription_info = data.get('subscription_info')
-        payload = data.get('payload', {})
+        data = json.loads(request.body) # 
+        # subscription_info = data.get('subscription_info')
+        # payload = data.get('payload', {})
+        user_id = 1 # data.get('user_id')
 
-        if subscription_info:
+        if user_id is not None:
             try:
-                # Send notification to the user
-                # send_user_notification(subscription_info, payload)
-                
-                # Read the private key from the .pem file
-                # file_path = 'tomtom/private_key.pem'
-                # with open('tomtom/private_key.pem', 'r') as f:
-                #     # vapid_private_key = f.read()
-                #     lines = [line.strip() for line in f.readlines()]
-                #     vapid_private_key = ''.join(lines[1:-1])
+                subscription = PushSubscription.objects.get(user_id=user_id)
+                subscription_info = subscription.subscription_info
+
                 vapid_private_key = settings.VAPID_PRIVATE_KEY
-                print('vapid_private_key:', vapid_private_key)
                 webpush(
                     subscription_info=subscription_info,
-                    data=payload,
-                    vapid_private_key= vapid_private_key,
+                    data="Hello, trip is @7PM", # json.dumps(payload), #
+                    vapid_private_key=vapid_private_key,
                     vapid_claims={
                         "sub": settings.VAPID_EMAIL,
                     }
                 )
+                print('webpush')
                 return JsonResponse({'success': True})
+            
             except WebPushException as ex:
                 print("Error:", ex)
                 # Mozilla returns additional information in the body of the response.

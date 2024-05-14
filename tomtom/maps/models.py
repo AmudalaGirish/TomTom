@@ -122,6 +122,7 @@ class FCMDevice(models.Model):
     
 
 class PushSubscription(models.Model):
+    user_id = models.IntegerField(default=0)
     subscription_info = models.JSONField()  # JSON field to store the subscription info
 
     # def __str__(self):

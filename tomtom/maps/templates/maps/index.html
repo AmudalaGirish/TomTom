@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Push Notifications</title>
+    <title>Travel Master</title>
     {% load webpush_notifications %}
     {% webpush_header %}
 </head>
@@ -36,7 +36,7 @@
         // Define a global variable to store subscription info
         let subscriptionInfo = null;
         // Function to subscribe the user to web push notifications
-        var applicationServerKey = 'BBLpa4tFlajDEvCgX_HMIftK55C6vq-coMvNnIlnOPnXvkCDRdNRQrqqcWWo4K8pZpwlChSgF8GkmpJrJrqLjE0'
+        var applicationServerKey = 'BASurhxWN80cYcss_4_EPPmtyvuBN82PuqFsFM-uhvpdjifkowH5Qwos4I1UIe_-tdR3zuCEqmiGkGcn5FqmXxI'
         function subscribeUser() {
             if ('serviceWorker' in navigator && 'PushManager' in window) {
                 navigator.serviceWorker.register('/static/service-worker.js')
@@ -95,7 +95,6 @@
                     },
                     body: JSON.stringify({ 
                         subscription_info: subscriptionInfo,  // Include your subscription info here
-                        payload: { head: 'Welcome!', body: 'Hello World' }  // Example payload
                     })
                 })
                 .then(response => {
