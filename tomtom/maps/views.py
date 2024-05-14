@@ -18,6 +18,8 @@ from .models import FCMDevice, PushSubscription
 
 from webpush import send_user_notification
 
+from pywebpush import webpush, WebPushException
+
 
 # @csrf_exempt  # For demo purposes only, consider proper CSRF protection in production
 # def send_notification(request):
@@ -47,7 +49,10 @@ def index(request):
 def subscribe(request):
     if request.method == 'POST':
         # Get subscription info from POST request (this will depend on your frontend implementation)
-        subscription_info = request.POST.get('subscription_info')
+        data = json.loads(request.body)
+        print('data:', data)
+        subscription_info = data.get('subscription_info')
+        print('subscription_info:', subscription_info)
         # user_id = request.user.id  # Example: Get the user ID from the request (assuming user is authenticated)
 
         # Save the subscription info to your database
@@ -63,18 +68,46 @@ def subscribe(request):
     
 def send_notification(request):
     if request.method == 'POST':
-        # For POC, assume subscription_info is directly provided in the request
-        subscription_info = request.POST.get('subscription_info')
-        payload = {"head": "Welcome!", "body": "Hello World"}
+        data = json.loads(request.body)
+        subscription_info = data.get('subscription_info')
+        payload = data.get('payload', {})
 
-        try:
-            # Send notification to the user
-            send_user_notification(subscription_info, payload)
-            return JsonResponse({'success': True})
-        except Exception as e:
-            return JsonResponse({'error': str(e)})
+        if subscription_info:
+            try:
+                # Send notification to the user
+                # send_user_notification(subscription_info, payload)
+                
+                # Read the private key from the .pem file
+                # file_path = 'tomtom/private_key.pem'
+                # with open('tomtom/private_key.pem', 'r') as f:
+                #     # vapid_private_key = f.read()
+                #     lines = [line.strip() for line in f.readlines()]
+                #     vapid_private_key = ''.join(lines[1:-1])
+                vapid_private_key = settings.VAPID_PRIVATE_KEY
+                print('vapid_private_key:', vapid_private_key)
+                webpush(
+                    subscription_info=subscription_info,
+                    data=payload,
+                    vapid_private_key= vapid_private_key,
+                    vapid_claims={
+                        "sub": settings.VAPID_EMAIL,
+                    }
+                )
+                return JsonResponse({'success': True})
+            except WebPushException as ex:
+                print("Error:", ex)
+                # Mozilla returns additional information in the body of the response.
+                if ex.response and ex.response.json():
+                    extra = ex.response.json()
+                    print("Remote service replied with a {}:{}, {}",
+                        extra.code,
+                        extra.errno,
+                        extra.message
+                        )
+        else:
+            return JsonResponse({'error': 'Subscription info missing'})
     else:
-        return JsonResponse({'error': 'Invalid request'})
+        return JsonResponse({'error': 'Invalid request method'})
 
 def payment_form(request):
     if request.method == 'POST':

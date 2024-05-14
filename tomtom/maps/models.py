@@ -124,6 +124,6 @@ class FCMDevice(models.Model):
 class PushSubscription(models.Model):
     subscription_info = models.JSONField()  # JSON field to store the subscription info
 
-    def __str__(self):
-        return f'Push Subscription for User {self.user_id}'
+    # def __str__(self):
+    #     return f'Push Subscription for User {self.subscription_info}'
 

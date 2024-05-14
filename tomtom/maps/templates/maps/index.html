@@ -19,18 +19,40 @@
     
     
     <script>
+        function urlBase64ToUint8Array (base64String) {
+            var padding = '='.repeat((4 - base64String.length % 4) % 4)
+            var base64 = (base64String + padding)
+              .replace(/\-/g, '+')
+              .replace(/_/g, '/')
+          
+            var rawData = window.atob(base64)
+            var outputArray = new Uint8Array(rawData.length)
+          
+            for (var i = 0; i < rawData.length; ++i) {
+              outputArray[i] = rawData.charCodeAt(i)
+            }
+            return outputArray;
+          }
+        // Define a global variable to store subscription info
+        let subscriptionInfo = null;
         // Function to subscribe the user to web push notifications
+        var applicationServerKey = 'BBLpa4tFlajDEvCgX_HMIftK55C6vq-coMvNnIlnOPnXvkCDRdNRQrqqcWWo4K8pZpwlChSgF8GkmpJrJrqLjE0'
         function subscribeUser() {
             if ('serviceWorker' in navigator && 'PushManager' in window) {
-                navigator.serviceWorker.register('/maps/service-worker.js')
+                navigator.serviceWorker.register('/static/service-worker.js')
                     .then(function(registration) {
                         return registration.pushManager.subscribe({
                             userVisibleOnly: true,
-                            applicationServerKey: 'BBLpa4tFlajDEvCgX_HMIftK55C6vq-coMvNnIlnOPnXvkCDRdNRQrqqcWWo4K8pZpwlChSgF8GkmpJrJrqLjE0'
+                            applicationServerKey: urlBase64ToUint8Array(
+                                applicationServerKey
+                              ),
                         });
                     })
                     .then(function(subscription) {
+                        // Store the subscription info
+                        subscriptionInfo = subscription;
                         // Send the subscription info to your backend (POST request)
+                        console.log('subscription_info:', subscription)
                         sendSubscriptionToServer(subscription);
                     })
                     .catch(function(error) {
@@ -43,7 +65,7 @@
 
         // Function to send the subscription info to the server
         function sendSubscriptionToServer(subscription) {
-            fetch('maps/subscribe/', {
+            fetch('/maps/subscribe/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -54,40 +76,37 @@
             .then(function(response) {
                 if (response.ok) {
                     console.log('Subscription successful');
-                    alert('Subscription successful!');
                 } else {
                     console.error('Failed to save subscription');
-                    alert('Failed to save subscription');
                 }
             })
             .catch(function(error) {
                 console.error('Error sending subscription:', error);
-                alert('Error sending subscription');
             });
         }
 
             // Function to trigger a test notification
             function triggerNotification() {
-                fetch('maps/send_notification/', {
+                fetch('/maps/send_notification/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRFToken': '{{ csrf_token }}' // Include Django CSRF token if using CSRF protection
                     },
-                    body: JSON.stringify({ message: 'This is a test notification' })
+                    body: JSON.stringify({ 
+                        subscription_info: subscriptionInfo,  // Include your subscription info here
+                        payload: { head: 'Welcome!', body: 'Hello World' }  // Example payload
+                    })
                 })
                 .then(response => {
                     if (response.ok) {
                         console.log('Notification triggered successfully');
-                        alert('Notification triggered successfully');
                     } else {
                         console.error('Failed to trigger notification');
-                        alert('Failed to trigger notification');
                     }
                 })
                 .catch(error => {
                     console.error('Error triggering notification:', error);
-                    alert('Error triggering notification');
                 });
             }
     </script>

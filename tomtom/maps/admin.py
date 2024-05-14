@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Ride, Employee, Client, Payment, Transaction
+from .models import Ride, Employee, Client, Payment, Transaction, PushSubscription
 from .forms import EmployeeForm, ClientForm
 
 
@@ -25,9 +25,13 @@ class PaymentAdmin(admin.ModelAdmin):
 class TransactionAdmin(admin.ModelAdmin):
     list_display = ('order_id', 'amount', 'currency', 'receipt_id', 'notes')
 
+# class PushSubscriptionAdmin(admin.ModelAdmin):
+#     list_display = ['subscription_info']
 
 admin.site.register(Ride, RideAdmin)
 admin.site.register(Employee, EmployeeAdmin)
 admin.site.register(Client, ClientAdmin)
 admin.site.register(Payment, PaymentAdmin)
 admin.site.register(Transaction, TransactionAdmin)
+# admin.site.register(PushSubscription, PushSubscriptionAdmin)
+admin.site.register(PushSubscription)

@@ -102,6 +102,10 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'maps', 'static'),
 ]
 
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'static'),
+# ]
+
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
@@ -112,3 +116,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ReportLab A4 Size of PDF
 PAGE_SIZE = (595.275, 841.89)
+
+VAPID_PUBLIC_KEY = "BASurhxWN80cYcss_4_EPPmtyvuBN82PuqFsFM-uhvpdjifkowH5Qwos4I1UIe_-tdR3zuCEqmiGkGcn5FqmXxI"
+VAPID_PRIVATE_KEY = "YVrf5aCDEZTfeKMkh0fJd2TFY3wTSiJ4CG4khfJSHOs"
+VAPID_EMAIL = "mailto:girishamudala91@gmail.com"
+
+
+WP_PRIVATE_KEY = 'tomtom/private_key.pem'
+WP_PUBLIC_KEY = 'tomtom/public_key.pem'
