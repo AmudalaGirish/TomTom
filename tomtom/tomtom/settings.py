@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'maps',
     "push_notifications",
     'webpush',
+    'notifications',
 ]
 
 MIDDLEWARE = [
@@ -80,11 +81,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-WEBPUSH_SETTINGS = {
-    "VAPID_PUBLIC_KEY": "BBLpa4tFlajDEvCgX_HMIftK55C6vq-coMvNnIlnOPnXvkCDRdNRQrqqcWWo4K8pZpwlChSgF8GkmpJrJrqLjE0",
-    "VAPID_PRIVATE_KEY":"XYG1ZvV4IgotAp_--iR7wfxhJSF4G_hUdOd7MvonHQc",
-    "VAPID_ADMIN_EMAIL": "girishamudala91@gmail.com"
-}
+# WEBPUSH_SETTINGS = {
+#     "VAPID_PUBLIC_KEY": "BBLpa4tFlajDEvCgX_HMIftK55C6vq-coMvNnIlnOPnXvkCDRdNRQrqqcWWo4K8pZpwlChSgF8GkmpJrJrqLjE0",
+#     "VAPID_PRIVATE_KEY":"XYG1ZvV4IgotAp_--iR7wfxhJSF4G_hUdOd7MvonHQc",
+#     "VAPID_ADMIN_EMAIL": "girishamudala91@gmail.com"
+# }
 
 PUSH_NOTIFICATIONS_SETTINGS = {
     "FCM_API_KEY": "AIzaSyDkSVsVdByEFIqQiMgEPvHq5DQPJGFLgO0",

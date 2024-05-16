@@ -1,10 +1,10 @@
 import os
-from pyhtml2pdf import converter
 
-path = os.path.abspath('C:/Girish/Django practice projects/TomTom/tomtom/maps/templates/maps/sample_invoice.html')
-
-# Convert the HTML file to PDF
-pdf_filename = 'sample.pdf'
-converter.convert(f"file:///{path}", pdf_filename)
-
-print(f'PDF file "{pdf_filename}" has been created.')
+file_path = 'tomtom/private_key.pem'
+if os.path.isfile(file_path):
+    print(f"File '{file_path}' exists.")
+    with open(file_path, 'rb') as f:
+        vapid_private_key = f.read()
+    print(vapid_private_key)
+else:
+    print(f"File '{file_path}' does not exist.")
