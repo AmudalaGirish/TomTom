@@ -1,14 +1,19 @@
 import os
 from django.core.asgi import get_asgi_application
-from django.urls import path
-from channels.routing import ProtocolTypeRouter, URLRouter
-# import maps.routing
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tomtom.settings')
 
-application = ProtocolTypeRouter({
-    'http': get_asgi_application(),
-    # 'websocket': URLRouter(
-    #     maps.routing.websocket_urlpatterns
-    # ),
-})
+from channels.auth import AuthMiddlewareStack
+from channels.routing import ProtocolTypeRouter , URLRouter
+from chat import routing
+
+application = ProtocolTypeRouter(
+    {
+        "http" : get_asgi_application() , 
+        "websocket" : AuthMiddlewareStack(
+            URLRouter(
+                routing.websocket_urlpatterns
+            )    
+        )
+    }
+)

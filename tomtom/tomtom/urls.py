@@ -5,4 +5,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('maps/', include('maps.urls')),
     path('webpush/', include('webpush.urls')),
+    path("chat/", include("chat.urls")),
+    path('paypal/', include('paypal.urls')),
 ]

@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 # import environ
-
+from decouple import config
 # env = environ.Env()
 # environ.Env.read_env()
 
@@ -16,17 +16,19 @@ ALLOWED_HOSTS = ["*", "192.168.25.242"]
 
 
 INSTALLED_APPS = [
-    'channels',
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     'maps',
     "push_notifications",
     'webpush',
     'notifications',
+    'paypal',
 ]
 
 MIDDLEWARE = [
@@ -44,7 +46,11 @@ ROOT_URLCONF = 'tomtom.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'maps', 'templates')],
+        'DIRS': [os.path.join(BASE_DIR, 'maps', 'templates'),
+                 os.path.join(BASE_DIR, 'chat', 'templates'),
+                 os.path.join(BASE_DIR, 'paypal', 'templates'),
+
+                 ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -65,6 +71,13 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -101,6 +114,7 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'maps', 'static'),
+    os.path.join(BASE_DIR, 'paypal', 'static'),
 ]
 
 # STATICFILES_DIRS = [
@@ -125,3 +139,12 @@ VAPID_EMAIL = "mailto:girishamudala91@gmail.com"
 
 WP_PRIVATE_KEY = 'tomtom/private_key.pem'
 WP_PUBLIC_KEY = 'tomtom/public_key.pem'
+
+LOGIN_REDIRECT_URL = 'chat-page'
+LOGOUT_REDIRECT_URL = 'login-user'
+
+
+# PayPal settings
+PAYPAL_CLIENT_ID = config('PAYPAL_CLIENT_ID', default='xxxxxxxxxxxxxxxxxxx')
+PAYPAL_CLIENT_SECRET = config('PAYPAL_CLIENT_SECRET', default='yyyyyyyyyyyyyyyyy')
+PAYPAL_BASE_URL = config('PAYPAL_BASE_URL')
