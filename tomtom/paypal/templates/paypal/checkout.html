@@ -6,70 +6,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PayPal JS SDK Standard Integration</title>
-      <style>
-        .custom-button {
-          background-color: #FFC439; /* Match PayPal button background color */
-          color: #005EA6; /* Match PayPal text color */
-          font-size: 18px;
-          font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-          border-radius: 5px;
-          padding: 12px 24px;
-          border: none;
-          cursor: pointer;
-          display: inline-block;
-          margin: 10px;
-          text-align: center;
-          font-weight: bold;
-          font-style: italic;
-          width: 100%; /* Make the width match the PayPal button */
-          max-width: 400px; /* Same max-width as PayPal button */
-      }
-
-        .custom-button:hover {
-          background-color: #FFB129;
-        }
-
-        .custom-button:focus {
-          outline: none;
-          box-shadow: 0 0 0 4px rgba(0, 112, 186, 0.4);
-        }
-        .razorpay-tagline {
-          font-size: 12px;
-          color: #999;
-          font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-          text-align: center;
-          margin-top: 5px;
-          font-style: italic;
-      }
-
-      .razorpay-tagline .razorpay {
-          font-weight: bold;
-          color: #005EA6; /* Blue color */
-      }
-    </style>
-    
 </head>
 <body>
     <div id="paypal-button-container"></div>
     <p id="result-message"></p>
     <!-- Replace the "test" client-id value with your client-id -->
-    <script src="https://www.paypal.com/sdk/js?client-id=AYU7-nN6cE9xygjCJkpFQPo7MevfX9C8F7Aw2PMQZqwUxdo-t7MZuzG4HZKEX3tJqEimuwlw0TolcsNL&disable-funding=paylater,venmo" data-sdk-integration-source="integrationbuilder_sc"></script>
+    <script src="https://www.paypal.com/sdk/js?client-id=AYU7-nN6cE9xygjCJkpFQPo7MevfX9C8F7Aw2PMQZqwUxdo-t7MZuzG4HZKEX3tJqEimuwlw0TolcsNL&currency=USD" data-sdk-integration-source="integrationbuilder_sc"></script>
     <!-- <script src="{% static 'app.js' %}"></script> -->
-    <div class="razorpay-button-container">
-      <button class="custom-button">Razorpay</button>
-      <div class="razorpay-tagline"><span class="razorpay">Razorpay</span> Powered</div>
-  </div>
     <script>
         // Get CSRF token from meta tag
 
         window.paypal
   .Buttons({
     style: {
-      shape: "rect",
+      shape: "pill",
       layout: "vertical",
-      colour: "black",
-      label: "paypal"
-      
+      colour: "gold",
+      label: "pay"
     },
     async createOrder() {
       try {
@@ -150,13 +103,7 @@ function resultMessage(message) {
   const container = document.querySelector("#result-message");
   container.innerHTML = message;
 }
-  document.addEventListener('DOMContentLoaded', function() {
-      const razorpayButton = document.getElementById('razorpay-button');
-      razorpayButton.addEventListener('click', function() {
-          alert('Razorpay button clicked!');
-          // Add your Razorpay integration code here
-      });
-  });
+
     </script>
 </body>
 </html>
