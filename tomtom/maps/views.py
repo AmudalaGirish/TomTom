@@ -254,195 +254,56 @@ import pdfkit
 from django.template.loader import get_template
 from django.conf import settings
 def generate_sample_invoice(request):
-    invoice = {
-        "invoice_no": "VT/202324/35",
+    invoice =     {
+        "invoice_no": "VT/202324/62",
         "items": [
             {
-                "item_id": 44,
-                "trip_request": {
-                    "trip_request_id": "VT00036",
-                    "trip_passengers": [
-                        {
-                            "id": 41,
-                            "passenger": {
-                                "passenger_id": 4,
-                                "project_code": "AVS",
-                                "passenger_name": "GIRISH",
-                                "gender": "M",
-                                "email_aaddress": "girishamudala@gmail.com",
-                                "country_code": None,
-                                "passenger_contact_number": "7349084841",
-                                "employee_id": "8632663"
-                            },
-                            "feedback": [],
-                            "pickup_location": "Hsr layouts",
-                            "drop_location": "Btm Layouts",
-                            "reporting_time": "2024-05-20T05:30:00Z",
-                            "pickup_time": None,
-                            "no_of_days": None,
-                            "pickup_location_latitude": None,
-                            "pickup_location_langitude": None,
-                            "drop_location_latitude": None,
-                            "drop_location_langitude": None,
-                            "travel_request_status": "Completed",
-                            "travel_request_type": None,
-                            "actual_start_time": None,
-                            "actual_complete_time": None,
-                            "trip_request": "VT00036",
-                            "trip_shift": None
-                        }
-                    ],
-                    "extra_time_cost": 130.0,
-                    "extra_km_cost": 60.0,
-                    "booking_date": "2024-05-20T04:55:34.352000Z",
-                    "booked_name": "SIVA",
-                    "booked_mobile": "8667350387",
-                    "booked_email": "selva.siva@itconnectus.com",
-                    "priority": "Employee",
-                    "trip_type": "Drop",
-                    "trip_status": "InvoiceGenerated",
-                    "vehicle_model": "Sedan",
-                    "trip_time": "2024-05-20T05:30:00Z",
-                    "driver_alternate_mobile": "9789763989",
-                    "meter_reading_opening": 23834,
-                    "starting_time": "2024-05-20T03:30:00Z",
-                    "meter_reading_closing": 23870,
-                    "ending_time": "2024-05-20T05:00:00Z",
-                    "total_trip_distance": "36",
-                    "total_trip_duration": "1:30",
-                    "extra_distance": "3",
-                    "extra_time": "1",
-                    "rate_for_extra_km": "20",
-                    "rate_for_extra_hours": "130",
-                    "toll": "20.00",
-                    "parking": "20.00",
-                    "entry_tax": "20.00",
-                    "digital_signature_file_name": "http://esafetrip.com/images/trip/signature/sigVT00036.png",
-                    "tripsheet_file": "http://esafetrip.com/pdf/tripsheet_PpRwPDV.pdf",
-                    "action_status": "",
-                    "driver_betta": "100.00",
-                    "total_trip_cost": "850.00",
-                    "base_price": "500.00",
-                    "remarks": "",
-                    "active_yn": None,
-                    "created_by": "siva",
-                    "created_dt": "2024-05-20T04:55:34.828730Z",
-                    "updated_by": "siva",
-                    "updated_dt": "2024-05-20T04:58:38.380029Z",
-                    "client": 1,
-                    "project_code": "AVS",
-                    "vehicle_number": "KA01MH9789",
-                    "driver": 1
-                },
+                "item_id": 106,
+                "trip_request": None,
                 "item_details": [],
-                "desc": None,
-                "amount": "0.00",
-                "taxable": None,
-                "invoice_no": "VT/202324/35"
+                "desc": "Transportation Charges For Emplyees For the Month of May 2024",
+                "amount": "7000.00",
+                "taxable": "N",
+                "invoice_no": "VT/202324/62"
             },
             {
-                "item_id": 45,
-                "trip_request": {
-                    "trip_request_id": "VT00037",
-                    "trip_passengers": [
-                        {
-                            "id": 42,
-                            "passenger": {
-                                "passenger_id": 3,
-                                "project_code": "Travel Master",
-                                "passenger_name": "RAMYA MADESH",
-                                "gender": "F",
-                                "email_aaddress": "raghu.s@itconnectus.com",
-                                "country_code": None,
-                                "passenger_contact_number": "8667350387",
-                                "employee_id": "CDS00590"
-                            },
-                            "feedback": [],
-                            "pickup_location": "HSR Layouts",
-                            "drop_location": "Kasthuri Nagar",
-                            "reporting_time": "2024-05-20T05:30:00Z",
-                            "pickup_time": None,
-                            "no_of_days": None,
-                            "pickup_location_latitude": None,
-                            "pickup_location_langitude": None,
-                            "drop_location_latitude": None,
-                            "drop_location_langitude": None,
-                            "travel_request_status": "Completed",
-                            "travel_request_type": None,
-                            "actual_start_time": None,
-                            "actual_complete_time": None,
-                            "trip_request": "VT00037",
-                            "trip_shift": None
-                        }
-                    ],
-                    "extra_time_cost": 200.0,
-                    "extra_km_cost": 100.0,
-                    "booking_date": "2024-05-20T04:56:39.203000Z",
-                    "booked_name": "Selva siva",
-                    "booked_mobile": "7026910602",
-                    "booked_email": "selva.siva@itconnectus.com",
-                    "priority": "Employee",
-                    "trip_type": "Drop",
-                    "trip_status": "InvoiceGenerated",
-                    "vehicle_model": "SUV",
-                    "trip_time": "2024-05-20T05:30:00Z",
-                    "driver_alternate_mobile": "9789763989",
-                    "meter_reading_opening": 34874,
-                    "starting_time": "2024-05-20T04:00:00Z",
-                    "meter_reading_closing": 34910,
-                    "ending_time": "2024-05-20T05:00:00Z",
-                    "total_trip_distance": "36",
-                    "total_trip_duration": "1:00",
-                    "extra_distance": "5",
-                    "extra_time": "1",
-                    "rate_for_extra_km": "20.00",
-                    "rate_for_extra_hours": "200.00",
-                    "toll": "20.00",
-                    "parking": "20.00",
-                    "entry_tax": "20.00",
-                    "digital_signature_file_name": "http://esafetrip.com/images/trip/signature/sigVT00037.png",
-                    "tripsheet_file": "http://esafetrip.com/pdf/tripsheet_FK8Gm9l.pdf",
-                    "action_status": "",
-                    "driver_betta": "250.00",
-                    "total_trip_cost": "1810.00",
-                    "base_price": "1200.00",
-                    "remarks": "",
-                    "active_yn": None,
-                    "created_by": "siva",
-                    "created_dt": "2024-05-20T04:56:39.659833Z",
-                    "updated_by": "siva",
-                    "updated_dt": "2024-05-20T04:59:40.455312Z",
-                    "client": 1,
-                    "project_code": "Travel Master",
-                    "vehicle_number": "KA05C7677",
-                    "driver": 2
-                },
+                "item_id": 107,
+                "trip_request": None,
                 "item_details": [],
-                "desc": None,
-                "amount": "0.00",
-                "taxable": None,
-                "invoice_no": "VT/202324/35"
+                "desc": "CGST @ 2.00",
+                "amount": "120.00",
+                "taxable": "N",
+                "invoice_no": "VT/202324/62"
+            },
+            {
+                "item_id": 108,
+                "trip_request": None,
+                "item_details": [],
+                "desc": "SGST @ 2.00",
+                "amount": "120.00",
+                "taxable": "N",
+                "invoice_no": "VT/202324/62"
             }
         ],
-        "invoice_date": "2024-05-20T07:53:07.487608Z",
+        "invoice_date": "2024-05-23T11:53:31.344399Z",
         "invoice_type": "Date Range",
-        "invoice_ref_id": "Client",
-        "po_no": None,
+        "invoice_ref_id": None,
+        "po_no": "89464944434",
         "service": "Rent-A-Cab Operator",
         "period": "01-05-2024 to 31-05-2024",
-        "total_not_taxable": "160.00",
-        "total_taxable": "690.00",
+        "total_not_taxable": "7240.00",
+        "total_taxable": "0.00",
         "cgst_percentage": "2.00",
         "sgst_percentage": "2.00",
-        "round_off": "0.40",
-        "total": "878.00",
+        "round_off": "0.00",
+        "total": "7240.00",
         "status": "MailSent",
         "signed_by": "SIVA",
-        "invoice_file_link": "http://esafetrip.com/pdf/invoices/invoice_ddA8PxN.pdf",
+        "invoice_file_link": "http://esafetrip.com/pdf/invoices/invoice_CB3QaGn.pdf",
         "created_by": None,
-        "created_dt": "2024-05-20T07:53:07.487715Z",
+        "created_dt": "2024-05-23T11:53:31.344499Z",
         "updated_by": None,
-        "updated_dt": "2024-05-20T08:07:32.505255Z",
+        "updated_dt": "2024-05-23T11:54:06.515053Z",
         "client": 1,
         "project_code": None
     }
@@ -563,43 +424,43 @@ def generate_sample_invoice(request):
         ]
 
     client = {
-    "client_id": 1,
-    "client_name": "CADENCE DESIGN SYSTEMS (INDIA) PVT LTD",
-    "email_address": "shashank.b@itconnectus.com",
-    "travel_contact_email": "selva.siva@itconnectus.com",
-    "travel_contact_number": "8667350387",
-    "gst_number": "29AAACC1138Q1ZE",
-    "igst_percent": "2.50",
-    "cgst_percent": "2.00",
-    "sgst_percent": "2.00",
-    "gst_type": "Exempt",
-    "gst_exemption": "NA",
-    "address": "RMZ Ecoworld Rd,Adarsh Palm Retreat,",
-    "address1": "Bellandur, Bengaluru,",
-    "pincode": "560103",
-    "state": "Kanataka",
-    "country_code": "+91",
-    "address_lat": "12.9263",
-    "address_lan": "77.68116",
-    "contact_number": "9789763989",
-    "pan_number": "KNEPS98801",
-    "finance_contact_name": "SHASHANK",
-    "finance_contact_number": "7026910602",
-    "nda_dt": "2025-06-27",
-    "nda_renewal_dt": "2029-05-31",
-    "admin_contact_number": "7026910602",
-    "admin_contact_name": "SHASHANK.B",
-    "emergency_contact_number": "9789763989",
-    "zone_code": "C-1",
-    "invoice_period_code": "weekly",
-    "invoice_signed_by": "SIVA",
-    "active_yn": None,
-    "created_by": "siva",
-    "created_dt": "2024-05-03T07:46:21.740635Z",
-    "updated_by": "siva",
-    "updated_dt": "2024-05-03T07:54:05.452269Z",
-    "bank_account_no": "1102101026425"
-}
+        "client_id": 1,
+        "client_name": "CADENCE DESIGN SYSTEMS (INDIA) PVT LTD",
+        "email_address": "shashank.b@itconnectus.com",
+        "travel_contact_email": "selva.siva@itconnectus.com",
+        "travel_contact_number": "8667350387",
+        "gst_number": "29AAACC1138Q1ZE",
+        "igst_percent": "2.50",
+        "cgst_percent": "2.00",
+        "sgst_percent": "2.00",
+        "gst_type": "Exempt",
+        "gst_exemption": "Yes",
+        "address": "RMZ Ecoworld Rd,Adarsh Palm Retreat,",
+        "address1": "Bellandur, Bengaluru,",
+        "pincode": "560103",
+        "state": "Kanataka",
+        "country_code": "+91",
+        "address_lat": "12.9263",
+        "address_lan": "77.68116",
+        "contact_number": "9789763989",
+        "pan_number": "KNEPS98801",
+        "finance_contact_name": "SHASHANK",
+        "finance_contact_number": "7026910602",
+        "nda_dt": "2025-06-27",
+        "nda_renewal_dt": "2029-05-31",
+        "admin_contact_number": "7026910602",
+        "admin_contact_name": "SHASHANK.B",
+        "emergency_contact_number": "9789763989",
+        "zone_code": "C-1",
+        "invoice_period_code": "weekly",
+        "invoice_signed_by": "SIVA",
+        "active_yn": None,
+        "created_by": "siva",
+        "created_dt": "2024-05-03T07:46:21.740635Z",
+        "updated_by": "siva",
+        "updated_dt": "2024-05-22T11:47:32.517706Z",
+        "bank_account_no": "1102101026425"
+    }
 
     bank = {
             "account_no": "1102101026425",
@@ -619,92 +480,54 @@ def generate_sample_invoice(request):
 
 
     payment_link = "https://rzp.io/i/ehuluMY1cQ"
-    # # rendered_html = render_to_string('maps/sample_invoice.html', {'invoice': invoice, 'driver': driver, 'client': client, 'bank': bank, 'payment_link':payment_link})
-    # context = {'invoice': invoice, 'driver': driver, 'client': client, 'bank': bank, 'payment_link':payment_link}
-    # rendered_html = get_template('maps/sample_invoice.html').render(context)
-    # # Save the rendered HTML content to a temporary file
-    # html_filename = 'rendered_template.html'
-    # html_file_path = os.path.join(settings.BASE_DIR, html_filename)
-    # with open(html_file_path, 'w') as html_file:
-    #     print("preparing html with backend data")
-    #     html_file.write(rendered_html)
-
-    # try:
-    #     # Convert the HTML file to PDF using pyhtml2pdf
-    #     pdf_filename = 'sample.pdf'
-    #     pdf_file_path = os.path.join(settings.BASE_DIR, pdf_filename)
-
-    #     # Options for wkhtmltopdf
-    #     # options = {
-    #     #     'page-size': 'Letter',
-    #     #     'margin-top': '0.75in',
-    #     #     'margin-right': '0.75in',
-    #     #     'margin-bottom': '0.75in',
-    #     #     'margin-left': '0.75in',
-    #     #     'encoding': "UTF-8",
-    #     # }
-    #     # Specify wkhtmltopdf path in configuration
-    #     config = pdfkit.configuration(wkhtmltopdf='C:/Program Files/wkhtmltopdf/bin/wkhtmltopdf.exe')
-
-    #     # Convert HTML to PDF using pdfkit
-    #     pdfkit.from_file(html_file_path, pdf_file_path, configuration=config)
-
-    #     # Add password protection using PyPDF2
-    #     user_password = '12345'
-    #     # owner_password = '1234'
-    #     pdf_file = encrypt_pdf(pdf_file_path, user_password)
-
-        
-    #     print("PDF generated")
-
-    #     return pdf_file
-    # except Exception as e:
-    #     print(f"Error generating PDF: {e}")
-
-    # #     converter.convert(f'file:///{html_file_path}', pdf_file_path)
-    # #     print("pdf generated")
-
-    # #     # Prepare the response with the PDF content for download
-    # #     with open(pdf_file_path, 'rb') as pdf_file:
-    # #         response = HttpResponse(pdf_file.read(), content_type='application/pdf')
-    # #         response['Content-Disposition'] = 'attachment; filename="invoice.pdf"'
-    # #         print("ready to download prepared")
-    # #         return response
-        
-    # # except Exception as e:
-    # #     print(f"Error generating PDF: {e}")
-    # # finally:
-    # #     # Clean up: Delete the temporary HTML file
-    # #     if os.path.exists(html_file_path):
-    # #         print("deleting html file")
-    # #         os.remove(html_file_path)
-
-    #     # Create PDF document using ReportLab
-    # #     response = HttpResponse(content_type='application/pdf')
-    # #     response['Content-Disposition'] = f'attachment; filename="{pdf_filename}"'
-
-    # #     # Create PDF from HTML content using pisa
-    # #     pisa_status = pisa.CreatePDF(
-    # #         rendered_html, dest=response, encoding='utf-8')
-        
-    # #     if not pisa_status.err:
-    # #         return response 
-
-    # #     # Clean up: Delete the temporary HTML file
-    # #     if os.path.exists(html_file_path):
-    # #         os.remove(html_file_path)
-
-    # #     return response
-    # # except Exception as e:
-    # #     print(f"Error generating PDF: {e}")
-
-
-    # # # Return a response or redirect if needed
-    # # return HttpResponse("PDF generation failed.")
-
-
+    # rendered_html = render_to_string('maps/sample_invoice.html', {'invoice': invoice, 'driver': driver, 'client': client, 'bank': bank, 'payment_link':payment_link})
     context = {'invoice': invoice, 'driver': driver, 'client': client, 'bank': bank, 'payment_link':payment_link}
-    return render(request, 'maps/sample_invoice.html', context)
+    rendered_html = get_template('maps/sample_invoice.html').render(context)
+    # Save the rendered HTML content to a temporary file
+    html_filename = 'rendered_template.html'
+    html_file_path = os.path.join(settings.BASE_DIR, html_filename)
+    with open(html_file_path, 'w') as html_file:
+        print("preparing html with backend data")
+        html_file.write(rendered_html)
+
+    try:
+        # Convert the HTML file to PDF using pyhtml2pdf
+        pdf_filename = 'sample.pdf'
+        pdf_file_path = os.path.join(settings.BASE_DIR, pdf_filename)
+
+        # Options for wkhtmltopdf
+        # options = {
+        #     'page-size': 'Letter',
+        #     'margin-top': '0.75in',
+        #     'margin-right': '0.75in',
+        #     'margin-bottom': '0.75in',
+        #     'margin-left': '0.75in',
+        #     'encoding': "UTF-8",
+        # }
+        # Specify wkhtmltopdf path in configuration
+        config = pdfkit.configuration(wkhtmltopdf='C:/Program Files/wkhtmltopdf/bin/wkhtmltopdf.exe')
+
+        # Convert HTML to PDF using pdfkit
+        pdfkit.from_file(html_file_path, pdf_file_path, configuration=config)
+
+        # Add password protection using PyPDF2
+        user_password = '12345'
+        # owner_password = '1234'
+        pdf_file = encrypt_pdf(pdf_file_path, user_password)
+
+        
+        print("PDF generated")
+
+        return pdf_file
+    except Exception as e:
+        print(f"Error generating PDF: {e}")
+
+    # # Return a response or redirect if needed
+    # return HttpResponse("PDF generation failed.")
+
+
+    # context = {'invoice': invoice, 'driver': driver, 'client': client, 'bank': bank, 'payment_link':payment_link}
+    # return render(request, 'maps/sample_invoice.html', context)
 from PyPDF2 import *
 def encrypt_pdf(pdf_file_path, user_password):
     try:
