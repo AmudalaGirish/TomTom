@@ -1,4 +1,8 @@
 {% load custom_filters %}
+{% load tz %}
+
+{% timezone "Asia/Kolkata" %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -31,7 +35,7 @@
         .invoice-header p {
             font-size: 14px;
         }
-        
+
         .invoice-details {
             overflow: hidden;
         }
@@ -43,7 +47,7 @@
         
         .invoice-details-right {
             float: right;
-            width: 30%; 
+            width: 50%; 
         }
 
         table {
@@ -67,85 +71,15 @@
             border-top: 1px solid #ccc;
             padding-top: 10px;
         }
+        .table1{
+            width: 50%;
+            margin-left: 50%;
+        }
     </style>
  
 </head>
 
 <body>
-    <script>
-        function generatePaymentLink() {
-            let amount = '{{ invoice.total }}';
-            
-            let customerName = '{{ client.client_name }}';
-
-            fetch('/maps/payment_link/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify({
-                    amount: amount,
-                    customer_name: customerName,
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data); // Log the response data for debugging
-                document.getElementById('payment_link').textContent = data.payment_link;
-                let paymentLink = data.payment_link;
-                document.getElementById('payment_link').href = paymentLink;
-                document.getElementById('payment_link').textContent = 'Click here to make payment';
-
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        }
-        // Function to get CSRF token from cookies
-        function getCookie(name) {
-            var cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                var cookies = document.cookie.split(';');
-                for (var i = 0; i < cookies.length; i++) {
-                    var cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-       // generatePaymentLink();
-       // generatePdf();
-
-        function generatePdf() {
-            // Make an API call to generate the PDF after ensuring the link is set
-            fetch('/maps/generate_sample_invoice/', {
-                method: 'GET',  // or 'POST' if needed
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                }
-            })
-            .then(response => response.blob())
-            .then(blob => {
-                // Create a download link for the generated PDF and trigger download
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'invoice.pdf';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-            })
-            .catch(error => {
-                console.error('Error generating PDF:', error);
-            });
-        }
-    </script>
     <div class="container">
         <div class="invoice-header">
             <h2>VARNA TRAVELS</h2>
@@ -155,12 +89,11 @@
             </p>
         </div>
         <hr />
-        <h3 style="text-align: center">TAX INVOICE</h3>
+        <h3 style="text-align: center">INVOICE</h3>
         <hr />
-
-        <div class="invoice-details">
-            <div class="invoice-details-left">
-                {% if invoice.invoice_ref_id == "Employee" %}
+            <div class="invoice-details" style="display: flex; justify-content: space-between;">
+            <div class="invoice-details-left" style="flex: 1 ;margin-right: 20px;">
+                {% if invoice.invoice_ref_id %}
                     <p>{{ invoice.items.0.trip_request.trip_passengers.0.passenger.passenger_name }} C/o</p>
                 {% endif %}
                 <p>{{ client.client_name }}</p>
@@ -172,18 +105,53 @@
                     <span class='bold-label'>State of Supply:</span> 29-Karnataka <br />
                 </p>
             </div>
-            <div class="invoice-details-right">
+            <div class="invoice-details-right" style="flex: 1; margin-right: 20px;">
                 <p>
                     *Original for recipient <br />
                     <span class='bold-label'>Invoice Number:</span> {{ invoice.invoice_no }}<br />
-                    <!-- < date should format as DD/MM/YY ></date> -->
-                    <span class='bold-label'>Invoice Date:</span> {{ invoice.invoice_date|get_date_format }}<br />
-                    <span class='bold-label'>Due Date:</span> {{ invoice.invoice_date|get_date_format}}<br />
-                    <span class='bold-label'>Invoice Period:</span> {{ invoice.period }}<br />
+                    <span class='bold-label'>Invoice Date:</span> {{ invoice.invoice_date|date:"d-m-Y"}}<br />
+                    <span class='bold-label'>Due Date:</span> {{ invoice.invoice_date|date:"d-m-Y"}}<br />
+                    <span class='bold-label'>Invoice Period:</span> 01-05-2024 to 31-05-2024<br />
+                    <span class='bold-label'>Service:</span> Rent-A-Cab Operator<br />
                 </p>
             </div>
-        </div>
+            </div>
+            {% if client.gst_exemption == "Yes" %}
+            <table class="table1">
+                <tbody>
+                <tr>
+                    <td class='bold-label' width="17">St No.</td>
+                    <td width="17"> AHOPA7992CST001</td>
+                </tr>
+                <tr>
+                    <td class='bold-label'>PAN No.</td>
+                    <td>{{ client.pan_number}}</td>
+                </tr>
+                <tr>
+                    <td class='bold-label'>GST No.</td>
+                    <td>{{ client.gst_number}}</td>
+                </tr>
+                <tr>
+                    <td class='bold-label'>LUT - AR</td>
+                    <td># AD290324039103D</td>
+                </tr>
+                <tr>
+                    <td class='bold-label'>LUT Date</td>
+                    <td>01-05-2024 </td>
+                </tr>
+                <tr>
+                    <td class='bold-label'>SAC No.</td>
+                    <td>996601</td>
+                </tr>
+                <tr>
+                    <td class='bold-label'>PO No.</td> 
+                    <td>{{ invoice.po_no }}</td>
+                </tr>
+            </tbody>
+        </table>
+            {% endif %}
 
+        {% if item.trip_request.trip_request_id %}
         <table>
             <thead>
                 <tr>
@@ -195,23 +163,22 @@
                 </tr>
             </thead>
             <tbody>
-                {% for item in invoice.items %}
+                {% for item in invoice.items.all %}
                     <tr>
                         <td>{{ forloop.counter }}</td>
                         <td>
                             <div>
                                 <span>{{ item.trip_request.trip_request_id }}</span>
-                                <span class='bold-label'> Booked by: </span>{{ item.trip_request.booked_name }} | 
-                                <!-- <span class='bold-label'>Date: </span>{{ item.trip_request.trip_time|date:"Y-m-d H:i:s" }}<br /> -->
-                                <span class='bold-label'>Date: </span>{{ item.trip_request.trip_time }}<br />
-                                <span class='bold-label'>Vehicle Type: </span>{{ item.trip_request.vehicle_model }} | 
+                                <span class='bold-label'>Booked by:</span> {{ item.trip_request.booked_name }} | 
+                                <span class='bold-label'>Date:</span> {{ item.trip_request.trip_time|date:"d-m-Y" }}<br />
+                                <span class='bold-label'>Vehicle Type:</span> {{ item.trip_request.vehicle_model }} | 
                                 <span class='bold-label'>{{ item.trip_request.vehicle_number }}</span> | 
-                                <span class='bold-label'>Trip Type: </span>{{ item.trip_request.trip_type }}<br />
-                                <span class='bold-label'>Passengers: </span>{% for pass in item.trip_request.trip_passengers %}
-                                    {{ pass.passenger.passenger_name }}{% if not forloop.last %},{% endif %}{% endfor %}<br />
-                                    <a href="">
-                                        Click to view trip sheet
-                                    </a>
+                                <span class='bold-label'>Trip Type:</span> {{ item.trip_request.trip_type }}<br />
+                                <span class='bold-label'>Passengers:</span> 
+                                {% for pass in item.trip_request.trip_passengers.all %}
+                                    {{ pass.passenger.passenger_name }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}<br />
+                                <a href="{{ base_url }}/{{ item.trip_request.tripsheet_file }}">Click to view trip sheet</a>
                             </div>
                         </td>
                         <td>{{ item.trip_request.base_price }}</td>
@@ -224,41 +191,58 @@
                             <td>Extra Km</td>
                             <td>{{ item.trip_request.rate_for_extra_km }}</td>
                             <td>{{ item.trip_request.extra_distance }}</td>
-                            <td>{{ item.trip_request.rate_for_extra_km|intmultiply:item.trip_request.extra_distance }}</td>   
+                            <td>{{ item.trip_request.rate_for_extra_km|multiply:item.trip_request.extra_distance|floatformat:2 }}</td>
                         </tr>
                     {% endif %}
                     {% if item.trip_request.extra_time %}
-                    <tr>
-                        <td></td>
-                        <td>Extra Hours</td>
-                        <td>{{ item.trip_request.rate_for_extra_hours }}</td>
-                        <td>{{ item.trip_request.extra_time }}</td>
-                        <td>{{ item.trip_request.rate_for_extra_hours|intmultiply:item.trip_request.extra_time }}</td>   
-                    </tr>
+                        <tr>
+                            <td></td>
+                            <td>Extra Hours</td>
+                            <td>{{ item.trip_request.rate_for_extra_hours }}</td>
+                            <td>{{ item.trip_request.extra_time }}</td>
+                            <td>{{ item.trip_request.rate_for_extra_hours|multiply:item.trip_request.extra_time|floatformat:2 }}</td>
+                        </tr>
                     {% endif %}
                     {% if item.trip_request.driver_betta %}
-                    <tr>
-                        <td></td>
-                        <td>Driver Allowance</td>
-                        <td></td>
-                        <td></td>
-                        <td>{{ item.trip_request.driver_betta }}</td>   
-                    </tr>
+                        <tr>
+                            <td></td>
+                            <td>Driver Allowance</td>
+                            <td></td>
+                            <td></td>
+                            <td>{{ item.trip_request.driver_betta }}</td>
+                        </tr>
                     {% endif %}
-                    {% if item.trip_request.toll or item.trip_request.parking or item.trip_request.entry_tax %}
-                    <tr>
-                        <td></td>
-                        <td>Toll, Parking & Entry Tax</td>
-                        <td></td>
-                        <td></td>
-                        <td>{{ item.trip_request.toll|add_three_values:item.trip_request.parking|add_three_values:item.trip_request.entry_tax }}</td>
-                    </tr>
+                    {% if item.trip_request.toll %}
+                        <tr>
+                            <td></td>
+                            <td>Toll</td>
+                            <td></td>
+                            <td></td>
+                            <td>{{ item.trip_request.toll }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if item.trip_request.parking %}
+                        <tr>
+                            <td></td>
+                            <td>Parking</td>
+                            <td></td>
+                            <td></td>
+                            <td>{{ item.trip_request.parking }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if item.trip_request.entry_tax %}
+                        <tr>
+                            <td></td>
+                            <td>Entry Tax</td>
+                            <td></td>
+                            <td></td>
+                            <td>{{ item.trip_request.entry_tax }}</td>
+                        </tr>
                     {% endif %}
                 {% endfor %}
-                <!-- Add total rows and calculations dynamically here based on data -->
                 <tr>
-                    <td>{{ invoice.items|length|add:1 }}</td>
-                    <td>Charges</td>
+                    <td>{{ invoice.items.all|length|add:1 }}</td>
+                    <td>Summary</td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -266,31 +250,31 @@
                 <tr>
                     <td></td>
                     <td></td>
-                    <td colspan="2" ><span class="bold-label">Taxable Sub Total</span></td>
+                    <td colspan="2"><span class="bold-label">Taxable Sub Total</span></td>
                     <td>{{ invoice.total_taxable }}</td>
                 </tr>
                 <tr>
                     <td></td>
                     <td></td>
-                    <td colspan="2" >CGST 2.5% - 2.5%</td>
-                    <td>{{ invoice.cgst_percentage }}</td>
+                    <td colspan="2">CGST - {{ invoice.cgst_percentage }}%</td>
+                    <td>{{ invoice.total_taxable|calc_tax:invoice.cgst_percentage }}</td>
                 </tr>
                 <tr>
                     <td></td>
                     <td></td>
-                    <td colspan="2" >SGST 2.5% - 2.5%</td>
-                    <td>{{ invoice.sgst_percentage }}</td>
+                    <td colspan="2">SGST - {{ invoice.sgst_percentage }}%</td>
+                    <td>{{ invoice.total_taxable|calc_tax:invoice.sgst_percentage }}</td>
                 </tr>
                 <tr>
                     <td></td>
-                    <td></td>
-                    <td colspan="2" ><span class="bold-label">Non-Taxable Sub Total</span></td>
+                    <td>Driver Allowance, Toll, Parking & Entry Tax</td>
+                    <td colspan="2"><span class="bold-label">Non-Taxable Sub Total</span></td>
                     <td>{{ invoice.total_not_taxable }}</td>
                 </tr>
                 <tr>
                     <td></td>
                     <td></td>
-                    <td colspan="2" ><span class="bold-label">Round Off</span></td>
+                    <td colspan="2"><span class="bold-label">Round Off</span></td>
                     <td>{{ invoice.round_off }}</td>
                 </tr>
                 <tr>
@@ -299,15 +283,59 @@
                     <td>{{ invoice.total }}</td>
                 </tr>
                 <tr>
-                    <td colspan="2"><span class="bold-label">Payment Link:</span>{{ payment_link }}</td>
-                    <!-- <td colspan="3"><a href="#" id="payment_link" target="_blank">Loading...</a></td> -->
-                    
+                    <td colspan="2">
+                        <a href="{{ payment_link }}">Please click here to Pay the Invoice online</a>
+                    </td>
                 </tr>
             </tbody>
         </table>
+        {% else %}
+        <table>
+            <thead>
+                <tr>
+                    <th>SL.NO</th>
+                    <th>DESCRIPTION</th>
+                    <th>AMOUNT</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in invoice.items.all %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ item.desc }}</td>
+                        <td>{{ item.amount }}</td>
+                    </tr>
+                {% endfor %}
+                <tr>
+                    <td></td>
+                    <td>Grand Total</td>
+                    <td>{{ invoice.total }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2"><span class="bold-label">In words:</span>{{ invoice.total|number_to_words }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <a href="{{ payment_link }}">Please click here to Pay the Invoice online</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        {% endif %}
 
         <div style="display: flex; margin-top: 10px;">
-            <div style="flex: 70%;">
+            <div style="flex: 60%;">
+                {% if client.gst_exemption == "Yes" %}
+                <p>
+                    Note: Whether Reverse charge mechanism applicable - YES
+                    The GST is liable by service receipt as per new amendment from 1st Oct 2019, under RCM
+                </p>
+                {% endif %}
+                {% if client.gst_exemption == "No" %}
+                <p>
+                    (SUPPLY MEANT FOR EXPORT/SUPPLY TO SEZ UNIT OR DEVELOPER FOR AUTHORISED OPERATIONS ON PAYMENT IF IGST)
+                </p>
+                {% endif %}
                 <p>
                     1. All cheques/drafts to be drawn in favour of: VARNA TRAVELS<br />
                     2. Duty slips/statement of usage enclosed in Original.<br />
@@ -320,6 +348,10 @@
                     <span class="bold-label">SAC/HSN/Accounting code:</span> | 
                     <span class="bold-label">PAN:</span> {{ client.pan_number }}
                 </p>
+                <div class="invoice-details-right">
+                    <p>For Varna Travels</p>
+                    <p style="margin-top: 20%;">Authorized Signatory</p>
+                </div>
                 <p style="margin-top: 10px;">
                     <span class="bold-label" style="text-decoration: underline;">Bank Details</span><br />
                     <span class="bold-label">Account No.:</span> {{ bank.account_no }}<br />
@@ -328,14 +360,9 @@
                     Please issue cheques in the name of <span class="bold-label">"VARNA TRAVELS".</span>
                 </p>
             </div>
-    <div style="flex: 30%; text-align: right;">
-        <p>For Varna Travels</p>
-        <p>Authorized Signatory</p>
-    </div>
-            </div>
         </div>
     </div>
-    
 </body>
-
 </html>
+
+{% endtimezone %}
