@@ -61,7 +61,14 @@
                 "recipient": currentRecipient
             }));
 
+            if (message.trim() !== "") {
+                chatSocket.send(JSON.stringify({
+                    "message": message,
+                    "recipient": "admin"
+                }));
+
             messageInput.value = "";
+            }
         };
     </script>
 </body>

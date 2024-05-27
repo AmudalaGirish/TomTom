@@ -4,9 +4,9 @@
     <title>Employee Chat</title>
 </head>
 <body>
-    <center><h1>Hello, {{ request.user.username }}!</h1></center>
+    <center><h1>Hello, {{ user.username }}!</h1></center>
     <br>
-    {% if request.user.is_authenticated %}
+    {% if user.is_authenticated %}
         <center><a href="{% url 'logout' %}">Logout</a></center>
     {% endif %}
     <div id="chat_container" style="font-size: 20px">
@@ -43,11 +43,18 @@
             const messageInput = document.querySelector("#message_input");
             const message = messageInput.value;
 
-            chatSocket.send(JSON.stringify({
-                "message": message
-            }));
+            if (message.trim() !== "") {
+                chatSocket.send(JSON.stringify({
+                    "message": message,
+                    "recipient": "admin"
+                }));
 
-            messageInput.value = "";
+                const div = document.createElement("div");
+                div.innerHTML = "You: " + message;
+                document.querySelector("#message_list").appendChild(div);
+
+                messageInput.value = "";
+            }
         };
     </script>
 </body>
