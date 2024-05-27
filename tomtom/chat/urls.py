@@ -1,13 +1,10 @@
-from django.urls import path, include
-from chat import views as chat_views
-from django.contrib.auth.views import LoginView, LogoutView
-
-
+from django.urls import path
+from . import views
+from django.contrib.auth import views as auth_views
 urlpatterns = [
-    path("", chat_views.chatPage, name="chat-page"),
-
-    # login-section
-    path("auth/login/", LoginView.as_view
-         (template_name="chat/loginpage.html"), name="login-user"),
-    path("auth/logout/", LogoutView.as_view(), name="logout-user"),
+    path('chat/', views.chat_page, name='chat'),
+    path('login/', views.role_based_login, name='login'),
+    path('admin_dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('emp_dashboard/', views.emp_dashboard, name='emp_dashboard'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
 ]

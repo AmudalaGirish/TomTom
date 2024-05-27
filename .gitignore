@@ -3,3 +3,4 @@ venv/
 tomtom/db.sqlite3
 tomtom/learn/__pycache__
 tomtom/learn/migrations/__pycache__
+chat-frontend/node_modules/
