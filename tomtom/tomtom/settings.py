@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'webpush',
     'notifications',
     'paypal',
+    'learn',
 ]
 
 MIDDLEWARE = [
@@ -49,6 +50,7 @@ TEMPLATES = [
         'DIRS': [os.path.join(BASE_DIR, 'maps', 'templates'),
                  os.path.join(BASE_DIR, 'chat', 'templates'),
                  os.path.join(BASE_DIR, 'paypal', 'templates'),
+                #  os.path.join(BASE_DIR,  'learn', 'templates'),
 
                  ],
         'APP_DIRS': True,

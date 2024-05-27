@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>The Emp List</h1>
+    {% if emps %}
+    <table>
+        <th>name</th>
+        <th>email</th>
+        {% for emp in emps %}
+        <tr>
+            <td>{{emp.name}}</td>
+            <td>{{emp.email}}</td>
+        </tr>
+        
+        {% endfor %}
+    </table>
+    {% endif %}
+</body>
+</html>

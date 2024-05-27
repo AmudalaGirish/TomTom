@@ -7,4 +7,6 @@ urlpatterns = [
     path('webpush/', include('webpush.urls')),
     path("chat/", include("chat.urls")),
     path('paypal/', include('paypal.urls')),
+    path('learn/', include('learn.urls')),
+
 ]

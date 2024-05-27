@@ -1,2 +1,5 @@
 venv/
 .env
+tomtom/db.sqlite3
+tomtom/learn/__pycache__
+tomtom/learn/migrations/__pycache__
