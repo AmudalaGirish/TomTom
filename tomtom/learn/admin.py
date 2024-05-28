@@ -7,3 +7,4 @@ class EmpAdmin(admin.ModelAdmin):
     list_display = ['name', 'email']
 
 admin.site.register(Emp, EmpAdmin)
+admin.site.register(Student)
