@@ -1,7 +1,8 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 import datetime
 from django.http import HttpResponse
 from .models import *
+
 
 # Create your views here.
 def appinfo(request):
@@ -13,6 +14,7 @@ def htttp(request):
     return HttpResponse("<h1> Hello World</h1>")
 
 from .forms import *
+from django.contrib.auth.decorators import login_required
 
 def studentinputview(request):
     form = StudentForm()
@@ -31,7 +33,7 @@ def studentmodelform(request):
     return render(request, 'studentinput.html', {'form':form})
 
 
-# Session managment views
+# cookies views
 def testcookie(request):
     if 'count' in request.COOKIES:
         count = int(request.COOKIES['count']) + 1
@@ -41,7 +43,7 @@ def testcookie(request):
     response.set_cookie('count', count)
     return response
 def checkcookie(request):
-    name = request.COOKIES.get('sessionid')
+    name = request.COOKIES.get('name')
     return HttpResponse(name)
 
 
@@ -64,3 +66,50 @@ def displayitem(request):
     for key in request.COOKIES:
         items[key] = request.COOKIES[key]
     return render(request, 'displayitem.html', {'items':items})
+
+# Seesion Views
+@login_required
+def seesion_count(request):
+    count = request.session.get('count', 0)
+    request.session['name'] = 'Raj'
+    newcount = count + 1
+    request.session['count'] = newcount
+    print(request.session.get_expiry_age())
+    print(request.session.get_expiry_date())
+    return HttpResponse(f"<h1>This page has been visited {newcount} times</h1>")
+
+def session_check(request):
+    count = request.session.get('count', 0)
+    name = request.session.get('name', 'Guest')
+    return HttpResponse(f"<h1>geting session count {count} times & {name}</h1>")
+
+
+
+# Function based views example views
+
+def list_view(request):
+    employees = Employee.objects.all()
+    return render(request, 'showemp.html', {'emps':employees})
+
+def create_view(request):
+    form = EmployeeForm()
+    if request.method == 'POST':
+        form = EmployeeForm(request.POST)
+        if form.is_valid():
+            form.save()
+        return redirect('list')
+    return render(request, 'createemp.html', {'form':form})
+
+def update_view(request, id):
+    emp = Employee.objects.get(id=id)
+    if request.method == 'POST':
+        form = EmployeeForm(request.POST, instance=emp)
+        if form.is_valid():
+            form.save()
+        return redirect('list')
+    return render(request, 'createemp.html', {'emp':emp})
+
+def delete_view(request, id):
+    emp = Employee.objects.get(id=id)
+    emp.delete()
+    return redirect('list')

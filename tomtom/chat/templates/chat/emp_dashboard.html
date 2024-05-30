@@ -12,8 +12,10 @@
     <div id="chat_container" style="font-size: 20px">
         <input type="text" id="message_input" placeholder="Type your message" />
         <button type="submit" id="send_button">Send Message</button>
+        <button id="call_button">Call Admin</button>
         <br /><br />
         <div id="message_list"></div>
+        <audio id="remote_audio" controls autoplay></audio>
     </div>
     <script>
         const chatSocket = new WebSocket(
@@ -34,9 +36,15 @@
 
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            const div = document.createElement("div");
-            div.innerHTML = data.username + ": " + data.message;
-            document.querySelector("#message_list").appendChild(div);
+            if (data.type === 'chat') {
+                const div = document.createElement("div");
+                div.innerHTML = data.username + ": " + data.message;
+                document.querySelector("#message_list").appendChild(div);
+            } else if (data.type === 'call') {
+                handleCallSignal(data.signal, data.username);
+            } else if (data.type === 'call_state') {
+                handleCallState(data.state);
+            }
         };
 
         document.querySelector("#send_button").onclick = function(e) {
@@ -45,6 +53,7 @@
 
             if (message.trim() !== "") {
                 chatSocket.send(JSON.stringify({
+                    "type": "chat",
                     "message": message,
                     "recipient": "admin"
                 }));
@@ -56,6 +65,88 @@
                 messageInput.value = "";
             }
         };
+
+        document.querySelector("#call_button").onclick = function(e) {
+            startCall();
+        };
+
+        let peerConnection;
+        const config = {
+            'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]
+        };
+
+        function startCall() {
+            navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
+                peerConnection = new RTCPeerConnection(config);
+                peerConnection.onicecandidate = function(event) {
+                    if (event.candidate) {
+                        chatSocket.send(JSON.stringify({
+                            'type': 'call',
+                            'signal': {'candidate': event.candidate},
+                            'recipient': 'admin'
+                        }));
+                    }
+                };
+
+                peerConnection.ontrack = function(event) {
+                    const remoteAudio = document.getElementById('remote_audio');
+                    remoteAudio.srcObject = event.streams[0];
+                };
+
+                stream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, stream);
+                });
+
+                peerConnection.createOffer().then(offer => {
+                    peerConnection.setLocalDescription(offer);
+                    chatSocket.send(JSON.stringify({
+                        'type': 'call',
+                        'signal': {'sdp': offer},
+                        'recipient': 'admin'
+                    }));
+                });
+
+                chatSocket.send(JSON.stringify({
+                    'type': 'call_state',
+                    'state': 'ringing',
+                    'recipient': 'admin'
+                }));
+            }).catch(error => {
+                console.error("Error accessing microphone:", error);
+                alert("Microphone access is required to make a call. Please allow access.");
+            });
+        }
+
+        function handleCallSignal(signal, username) {
+            if (signal.sdp) {
+                peerConnection.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+                if (signal.sdp.type === 'offer') {
+                    peerConnection.createAnswer().then(answer => {
+                        peerConnection.setLocalDescription(answer);
+                        chatSocket.send(JSON.stringify({
+                            'type': 'call',
+                            'signal': {'sdp': answer},
+                            'recipient': username
+                        }));
+                    });
+                }
+            } else if (signal.candidate) {
+                peerConnection.addIceCandidate(new RTCIceCandidate(signal.candidate));
+            }
+        }
+
+        function handleCallState(state) {
+            if (state === 'accepted') {
+                console.log("Call accepted");
+            } else if (state === 'ended') {
+                console.log("Call ended");
+                if (peerConnection) {
+                    peerConnection.close();
+                }
+            } else if (state === 'ringing') {
+                console.log("Ringing the admin...");
+            }
+        }
     </script>
 </body>
 </html>

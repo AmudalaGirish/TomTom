@@ -16,8 +16,14 @@
         <div id="chat_box" style="display: none;">
             <input type="text" id="message_input" placeholder="Type your message" />
             <button type="submit" id="send_button">Send Message</button>
+            <button id="call_button">Call Employee</button>
             <br /><br />
         </div>
+        <div id="call_controls" style="display: none;">
+            <button id="accept_call_button" style="display: none;">Accept Call</button>
+            <button id="end_call_button" style="display: none;">End Call</button>
+        </div>
+        <audio id="remote_audio" controls autoplay></audio>
     </div>
     <script>
         let currentRecipient = null;
@@ -39,17 +45,24 @@
 
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            const div = document.createElement("div");
-            div.innerHTML = data.username + ": " + data.message;
-            div.classList.add('message');
-            div.style.cursor = 'pointer';
-            document.querySelector("#message_list").appendChild(div);
+            if (data.type === 'chat') {
+                const div = document.createElement("div");
+                div.innerHTML = data.username + ": " + data.message;
+                div.classList.add('message');
+                div.style.cursor = 'pointer';
+                document.querySelector("#message_list").appendChild(div);
 
-            div.onclick = function() {
-                currentRecipient = data.username;
-                document.querySelector("#chat_box").style.display = "block";
-                document.querySelector("#message_input").focus();
-            };
+                div.onclick = function() {
+                    currentRecipient = data.username;
+                    document.querySelector("#chat_box").style.display = "block";
+                    document.querySelector("#call_controls").style.display = "none";
+                    document.querySelector("#message_input").focus();
+                };
+            } else if (data.type === 'call') {
+                handleCallSignal(data.signal, data.username);
+            } else if (data.type === 'call_state') {
+                handleCallState(data.state, data.username);
+            }
         };
 
         document.querySelector("#send_button").onclick = function(e) {
@@ -57,19 +70,129 @@
             const message = messageInput.value;
 
             chatSocket.send(JSON.stringify({
+                "type": "chat",
                 "message": message,
                 "recipient": currentRecipient
             }));
 
             if (message.trim() !== "") {
-                chatSocket.send(JSON.stringify({
-                    "message": message,
-                    "recipient": "admin"
-                }));
+                const div = document.createElement("div");
+                div.innerHTML = "You: " + message;
+                document.querySelector("#message_list").appendChild(div);
 
-            messageInput.value = "";
+                messageInput.value = "";
             }
         };
+
+        document.querySelector("#call_button").onclick = function(e) {
+            startCall(currentRecipient);
+        };
+
+        document.querySelector("#accept_call_button").onclick = function(e) {
+            acceptCall();
+        };
+
+        document.querySelector("#end_call_button").onclick = function(e) {
+            endCall();
+        };
+
+        let peerConnection;
+        const config = {
+            'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]
+        };
+
+        function startCall(recipient) {
+            navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
+                peerConnection = new RTCPeerConnection(config);
+                peerConnection.onicecandidate = function(event) {
+                    if (event.candidate) {
+                        chatSocket.send(JSON.stringify({
+                            'type': 'call',
+                            'signal': {'candidate': event.candidate},
+                            'recipient': recipient
+                        }));
+                    }
+                };
+
+                peerConnection.ontrack = function(event) {
+                    const remoteAudio = document.getElementById('remote_audio');
+                    remoteAudio.srcObject = event.streams[0];
+                };
+
+                stream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, stream);
+                });
+
+                peerConnection.createOffer().then(offer => {
+                    peerConnection.setLocalDescription(offer);
+                    chatSocket.send(JSON.stringify({
+                        'type': 'call',
+                        'signal': {'sdp': offer},
+                        'recipient': recipient
+                    }));
+                });
+
+                document.querySelector("#end_call_button").style.display = "block";
+            }).catch(error => {
+                console.error("Error accessing microphone:", error);
+                alert("Microphone access is required to make a call. Please allow access.");
+            });
+        }
+
+        function acceptCall() {
+            peerConnection.createAnswer().then(answer => {
+                peerConnection.setLocalDescription(answer);
+                chatSocket.send(JSON.stringify({
+                    'type': 'call',
+                    'signal': {'sdp': answer},
+                    'recipient': currentRecipient
+                }));
+            });
+
+            document.querySelector("#accept_call_button").style.display = "none";
+            document.querySelector("#end_call_button").style.display = "block";
+        }
+
+        function endCall() {
+            chatSocket.send(JSON.stringify({
+                'type': 'call_state',
+                'state': 'ended',
+                'recipient': currentRecipient
+            }));
+            if (peerConnection) {
+                peerConnection.close();
+            }
+            document.querySelector("#end_call_button").style.display = "none";
+        }
+
+        function handleCallSignal(signal, username) {
+            if (signal.sdp) {
+                peerConnection.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+                if (signal.sdp.type === 'offer') {
+                    document.querySelector("#accept_call_button").style.display = "block";
+                    currentRecipient = username;
+                }
+            } else if (signal.candidate) {
+                peerConnection.addIceCandidate(new RTCIceCandidate(signal.candidate));
+            }
+        }
+
+        function handleCallState(state, username) {
+            if (state === 'ended') {
+                console.log("Call ended with " + username);
+                if (peerConnection) {
+                    peerConnection.close();
+                }
+                document.querySelector("#end_call_button").style.display = "none";
+            } else if (state === 'in-call') {
+                console.log("In call with " + username);
+            } else if (state === 'ringing') {
+                console.log("Ringing with " + username);
+                currentRecipient = username;
+                document.querySelector("#accept_call_button").style.display = "block";
+                document.querySelector("#end_call_button").style.display = "block";
+            }
+        }
     </script>
 </body>
 </html>

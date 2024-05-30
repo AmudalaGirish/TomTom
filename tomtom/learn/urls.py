@@ -7,5 +7,7 @@ urlpatterns = [
     path('student/', studentmodelform),
     path('testcookie/', testcookie),
     path('checkcookie/', checkcookie),
+    path('session/', seesion_count),
+    path('checksession/', session_check)
 
 ]
