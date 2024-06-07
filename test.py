@@ -1,12 +1,8 @@
-s = "aaaaabsjfdbdskskkkkkksalajschshska"
-d = {}
+s = "B4A1D3"
+s1 = ""
 
-for x in s:
-    if x in d.keys():
-        d[x] += 1
+for ch in s:
+    if ch.isalpha():
+        s1 += ch
     else:
-        d[x] = 1
-
-print(d)
-for k,v in d.items():
-    print(f"{k}={v} times")
+        pass

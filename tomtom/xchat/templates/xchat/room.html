@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Video Chat Room</title>
+</head>
+<body>
+    <h1>Room: {{ room_name }}</h1>
+    <div>
+        <video id="localVideo" autoplay muted></video>
+        <video id="remoteVideo" autoplay></video>
+    </div>
+    <input id="messageInput" type="text">
+    <button id="sendMessageButton">Send Message</button>
+
+    <script>
+        const roomName = "{{ room_name }}";
+        const username = "{{ username }}";
+        const localVideo = document.getElementById('localVideo');
+        const remoteVideo = document.getElementById('remoteVideo');
+        const messageInput = document.getElementById('messageInput');
+        const sendMessageButton = document.getElementById('sendMessageButton');
+
+        const peerConnection = new RTCPeerConnection({
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+            ],
+        });
+
+        peerConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+                sendMessage({ type: 'candidate', candidate: event.candidate });
+            }
+        };
+
+        peerConnection.ontrack = (event) => {
+            remoteVideo.srcObject = event.streams[0];
+        };
+
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then((stream) => {
+                localVideo.srcObject = stream;
+                stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+            });
+
+        const socket = new WebSocket(`ws://${window.location.host}/ws/videochat/${roomName}/`);
+
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+
+            if (data.type === 'offer') {
+                peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer))
+                    .then(() => peerConnection.createAnswer())
+                    .then((answer) => peerConnection.setLocalDescription(answer))
+                    .then(() => sendMessage({ type: 'answer', answer: peerConnection.localDescription }));
+            } else if (data.type === 'answer') {
+                peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+            } else if (data.type === 'candidate') {
+                peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+            }
+        };
+
+        sendMessageButton.addEventListener('click', () => {
+            const message = messageInput.value;
+            sendMessage({ type: 'chat', message: message });
+            messageInput.value = '';
+        });
+
+        function sendMessage(message) {
+            socket.send(JSON.stringify(message));
+        }
+    </script>
+</body>
+</html>

@@ -9,5 +9,6 @@ urlpatterns = [
     path('paypal/', include('paypal.urls')),
     path('learn/', include('learn.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
+    path('xchat/', include('xchat.urls')),
 
 ]

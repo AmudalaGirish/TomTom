@@ -13,6 +13,8 @@
         <input type="text" id="message_input" placeholder="Type your message" />
         <button type="submit" id="send_button">Send Message</button>
         <button id="call_button">Call Admin</button>
+        <button id="end_call_button" style="display:none; color:red;">End Call</button>
+        <button id="mute_button" style="display:none;">Mute</button>
         <br /><br />
         <div id="message_list"></div>
         <audio id="remote_audio" controls autoplay></audio>
@@ -36,6 +38,7 @@
 
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
+            console.log("Message received:", data);
             if (data.type === 'chat') {
                 const div = document.createElement("div");
                 div.innerHTML = data.username + ": " + data.message;
@@ -70,13 +73,25 @@
             startCall();
         };
 
+        document.querySelector("#end_call_button").onclick = function(e) {
+            endCall();
+        };
+
+        document.querySelector("#mute_button").onclick = function(e) {
+            toggleMute();
+        };
+
         let peerConnection;
+        let localStream;
+        let remoteStream;
         const config = {
             'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]
         };
 
         function startCall() {
+            console.log("Starting call...");
             navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
+                localStream = stream;
                 peerConnection = new RTCPeerConnection(config);
                 peerConnection.onicecandidate = function(event) {
                     if (event.candidate) {
@@ -90,7 +105,11 @@
 
                 peerConnection.ontrack = function(event) {
                     const remoteAudio = document.getElementById('remote_audio');
-                    remoteAudio.srcObject = event.streams[0];
+                    if (!remoteStream) {
+                        remoteStream = new MediaStream();
+                    }
+                    remoteStream.addTrack(event.track);
+                    remoteAudio.srcObject = remoteStream;
                 };
 
                 stream.getTracks().forEach(track => {
@@ -106,6 +125,9 @@
                     }));
                 });
 
+                document.querySelector("#end_call_button").style.display = "block";
+                document.querySelector("#mute_button").style.display = "block";
+
                 chatSocket.send(JSON.stringify({
                     'type': 'call_state',
                     'state': 'ringing',
@@ -117,7 +139,29 @@
             });
         }
 
+        function endCall() {
+            console.log("Ending call...");
+            chatSocket.send(JSON.stringify({
+                'type': 'call_state',
+                'state': 'ended',
+                'recipient': 'admin'
+            }));
+            if (peerConnection) {
+                peerConnection.close();
+            }
+            document.querySelector("#end_call_button").style.display = "none";
+            document.querySelector("#mute_button").style.display = "none";
+        }
+
+        function toggleMute() {
+            console.log("Toggling mute...");
+            const audioTrack = localStream.getAudioTracks()[0];
+            audioTrack.enabled = !audioTrack.enabled;
+            document.querySelector("#mute_button").innerText = audioTrack.enabled ? "Mute" : "Unmute";
+        }
+
         function handleCallSignal(signal, username) {
+            console.log("Handling call signal from", username);
             if (signal.sdp) {
                 peerConnection.setRemoteDescription(new RTCSessionDescription(signal.sdp));
                 if (signal.sdp.type === 'offer') {
@@ -136,6 +180,7 @@
         }
 
         function handleCallState(state) {
+            console.log("Handling call state:", state);
             if (state === 'accepted') {
                 console.log("Call accepted");
             } else if (state === 'ended') {
@@ -143,6 +188,8 @@
                 if (peerConnection) {
                     peerConnection.close();
                 }
+                document.querySelector("#end_call_button").style.display = "none";
+                document.querySelector("#mute_button").style.display = "none";
             } else if (state === 'ringing') {
                 console.log("Ringing the admin...");
             }

@@ -28,4 +28,18 @@ class Employee(models.Model):
     def __str__(self) -> str:
         return self.ename
     
-    
+class ContactInfo(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    phone = models.CharField(max_length=100)
+
+    class Meta:
+        abstract = True
+
+class Stu(ContactInfo):
+    roll = models.IntegerField()
+    course = models.CharField(max_length=100)
+
+class Teacher(ContactInfo):
+    subject = models.CharField(max_length=100)
+    salary = models.IntegerField()

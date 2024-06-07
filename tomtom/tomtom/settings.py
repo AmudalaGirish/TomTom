@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "push_notifications",
     'webpush',
     'notifications',
+    'rest_framework',
     'paypal',
     'learn',
     'chat',
@@ -51,7 +52,7 @@ TEMPLATES = [
         'DIRS': [os.path.join(BASE_DIR, 'maps', 'templates'),
                  os.path.join(BASE_DIR, 'chat', 'templates'),
                  os.path.join(BASE_DIR, 'paypal', 'templates'),
-                #  os.path.join(BASE_DIR,  'learn', 'templates'),
+                 os.path.join(BASE_DIR,  'xchat', 'templates'),
 
                  ],
         'APP_DIRS': True,
@@ -68,10 +69,20 @@ TEMPLATES = [
 ASGI_APPLICATION = 'tomtom.asgi.application'
 WSGI_APPLICATION = 'tomtom.wsgi.application'
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'tomtom',
+        'USER': 'postgres',
+        'PASSWORD': '12345',
+        'HOST': 'localhost',  # Change if your database is on a different host
+        'PORT': '5432',       # Default PostgreSQL port
     }
 }
 
@@ -127,6 +138,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'maps', 'static'),
     os.path.join(BASE_DIR, 'paypal', 'static'),
+    os.path.join(BASE_DIR, 'static'),
 ]
 
 # STATICFILES_DIRS = [
