@@ -43,3 +43,13 @@ class Stu(ContactInfo):
 class Teacher(ContactInfo):
     subject = models.CharField(max_length=100)
     salary = models.IntegerField()
+
+class BasicModel(models.Model):
+    f1 = models.CharField(max_length=100)
+    f2 = models.IntegerField()
+    f3 = models.FloatField()
+
+class StrandardModel(BasicModel):
+    f4 = models.CharField(max_length=100)
+    f5 = models.IntegerField()
+    f6 = models.FloatField()
