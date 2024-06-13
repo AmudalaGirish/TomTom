@@ -27,9 +27,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 )
 
             await self.accept()
-            print("############")
-            print(f"User connected: {self.user.username}")
-            print("group_name:", self.room_group_name)
 
     async def disconnect(self, close_code):
         # Leave the user's personal group
@@ -46,94 +43,27 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 self.channel_name
             )
 
-        print("############")
-        print(f"User disconnected: {self.user.username}")
-
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        message_type = text_data_json.get('type')
+        message = text_data_json['message']
 
-        print("############")
-        print(f"Message received: {text_data_json}")
-
-        if message_type == 'chat':
-            await self.handle_chat_message(text_data_json)
-        elif message_type == 'call':
-            await self.handle_call_signal(text_data_json)
-        elif message_type == 'call_state':
-            await self.handle_call_state(text_data_json)
-
-    async def handle_chat_message(self, data):
-        message = data['message']
-        recipient_username = data.get('recipient')
-        if recipient_username:
+        # If the sender is an employee, broadcast to all admins
+        is_admin = await self.is_admin()
+        if not is_admin:
+            await self.send_to_admins(message)
+        else:
+            recipient_username = text_data_json['recipient']
             recipient = await self.get_user_by_username(recipient_username)
             await self.send_to_user(message, recipient)
-        else:
-            await self.send_to_admins(message)
-        print("############")
-        print(f"Chat message handled: {data}")
-
-    async def handle_call_signal(self, data):
-        recipient_username = data['recipient']
-        recipient = await self.get_user_by_username(recipient_username)
-        recipient_group_name = f'chat_{recipient.username}'
-        await self.channel_layer.group_send(
-            recipient_group_name,
-            {
-                'type': 'call_signal',
-                'signal': data['signal'],
-                'username': self.user.username
-            }
-        )
-        print("############")
-        print(f"Call signal handled: {data}")
-
-    async def handle_call_state(self, data):
-        recipient_username = data['recipient']
-        state = data['state']
-        recipient = await self.get_user_by_username(recipient_username)
-        recipient_group_name = f'chat_{recipient.username}'
-        await self.channel_layer.group_send(
-            recipient_group_name,
-            {
-                'type': 'call_state',
-                'state': state,
-                'username': self.user.username
-            }
-        )
-        print("############")
-        print(f"Call state handled: {data}")
 
     async def chat_message(self, event):
         message = event['message']
         username = event['username']
 
         await self.send(text_data=json.dumps({
-            'type': 'chat',
             'message': message,
             'username': username
         }))
-        print("############")
-        print(f"Chat message sent: {event}")
-
-    async def call_signal(self, event):
-        await self.send(text_data=json.dumps({
-            'type': 'call',
-            'signal': event['signal'],
-            'username': event['username']
-        }))
-        print("############")
-        print(f"Call signal sent: {event}")
-
-    async def call_state(self, event):
-        await self.send(text_data=json.dumps({
-            'type': 'call_state',
-            'state': event['state'],
-            'username': event['username']
-        }))
-        print("############")
-        print(f"Call state sent: {event}")
 
     async def send_to_admins(self, message):
         await self.channel_layer.group_send(
@@ -144,11 +74,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'username': self.user.username
             }
         )
-        print("############")
-        print(f"Message sent to admins: {message}")
+
+        # Save message to the database
+        # await self.save_message(self.user, None, message)
 
     async def send_to_user(self, message, recipient):
         recipient_group_name = f'chat_{recipient.username}'
+
         await self.channel_layer.group_send(
             recipient_group_name,
             {
@@ -157,8 +89,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'username': self.user.username
             }
         )
-        print("############")
-        print(f"Message sent to user {recipient.username}: {message}")
+
+        # Save message to the database
+        # await self.save_message(self.user, recipient, message)
 
     @sync_to_async
     def get_user_by_username(self, username):
@@ -171,3 +104,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def is_admin(self):
         profile = await self.get_user_profile(self.user)
         return profile.role == 'admin'
+
+    # @sync_to_async
+    # def save_message(self, sender, recipient, message):
+    #     Message.objects.create(sender=sender, recipient=recipient, message)

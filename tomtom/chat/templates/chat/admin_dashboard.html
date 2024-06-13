@@ -16,24 +16,11 @@
         <div id="chat_box" style="display: none;">
             <input type="text" id="message_input" placeholder="Type your message" />
             <button type="submit" id="send_button">Send Message</button>
-            <button id="call_button">Call Employee</button>
             <br /><br />
         </div>
-        <div id="call_controls" style="display: none;">
-            <button id="accept_call_button" style="display: none;">Accept Call</button>
-            <button id="end_call_button" style="display: none;">End Call</button>
-            <button id="mute_button" style="display: none;">Mute</button>
-        </div>
-        <audio id="remote_audio" controls autoplay></audio>
     </div>
     <script>
         let currentRecipient = null;
-        let peerConnection;
-        let localStream;
-        const config = {
-            'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]
-        };
-
         const chatSocket = new WebSocket(
             "ws://" + window.location.host + "/ws/chat/"
         );
@@ -52,28 +39,17 @@
 
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            console.log("Message received: ", data);
+            const div = document.createElement("div");
+            div.innerHTML = data.username + ": " + data.message;
+            div.classList.add('message');
+            div.style.cursor = 'pointer';
+            document.querySelector("#message_list").appendChild(div);
 
-            if (data.type === 'chat') {
-                const div = document.createElement("div");
-                div.innerHTML = data.username + ": " + data.message;
-                div.classList.add('message');
-                div.style.cursor = 'pointer';
-                document.querySelector("#message_list").appendChild(div);
-
-                div.onclick = function() {
-                    currentRecipient = data.username;
-                    document.querySelector("#chat_box").style.display = "block";
-                    document.querySelector("#call_controls").style.display = "none";
-                    document.querySelector("#message_input").focus();
-                };
-            } else if (data.type === 'call') {
-                console.log("Handling call signal from", data.username);
-                handleCallSignal(data.signal, data.username);
-            } else if (data.type === 'call_state') {
-                console.log("Handling call state:", data.state);
-                handleCallState(data.state, data.username);
-            }
+            div.onclick = function() {
+                currentRecipient = data.username;
+                document.querySelector("#chat_box").style.display = "block";
+                document.querySelector("#message_input").focus();
+            };
         };
 
         document.querySelector("#send_button").onclick = function(e) {
@@ -81,193 +57,19 @@
             const message = messageInput.value;
 
             chatSocket.send(JSON.stringify({
-                "type": "chat",
                 "message": message,
                 "recipient": currentRecipient
             }));
 
             if (message.trim() !== "") {
-                const div = document.createElement("div");
-                div.innerHTML = "You: " + message;
-                document.querySelector("#message_list").appendChild(div);
+                chatSocket.send(JSON.stringify({
+                    "message": message,
+                    "recipient": "admin"
+                }));
 
-                messageInput.value = "";
+            messageInput.value = "";
             }
         };
-
-        document.querySelector("#call_button").onclick = function(e) {
-            startCall(currentRecipient);
-        };
-
-        document.querySelector("#accept_call_button").onclick = function(e) {
-            acceptCall();
-        };
-
-        document.querySelector("#end_call_button").onclick = function(e) {
-            endCall();
-        };
-
-        document.querySelector("#mute_button").onclick = function(e) {
-            toggleMute();
-        };
-
-        function startCall(recipient) {
-            navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
-                localStream = stream;
-                peerConnection = new RTCPeerConnection(config);
-                peerConnection.onicecandidate = function(event) {
-                    if (event.candidate) {
-                        chatSocket.send(JSON.stringify({
-                            'type': 'call',
-                            'signal': {'candidate': event.candidate},
-                            'recipient': recipient
-                        }));
-                    }
-                };
-
-                peerConnection.ontrack = function(event) {
-                    const remoteAudio = document.getElementById('remote_audio');
-                    remoteAudio.srcObject = event.streams[0];
-                };
-
-                stream.getTracks().forEach(track => {
-                    peerConnection.addTrack(track, stream);
-                });
-
-                peerConnection.createOffer().then(offer => {
-                    peerConnection.setLocalDescription(offer);
-                    chatSocket.send(JSON.stringify({
-                        'type': 'call',
-                        'signal': {'sdp': offer},
-                        'recipient': recipient
-                    }));
-                });
-
-                document.querySelector("#end_call_button").style.display = "block";
-                document.querySelector("#mute_button").style.display = "block";
-            }).catch(error => {
-                console.error("Error accessing microphone:", error);
-                alert("Microphone access is required to make a call. Please allow access.");
-            });
-        }
-
-        function acceptCall() {
-            console.log("Accepting call...");
-            navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
-                localStream = stream;
-                peerConnection = new RTCPeerConnection(config);
-                peerConnection.onicecandidate = function(event) {
-                    if (event.candidate) {
-                        chatSocket.send(JSON.stringify({
-                            'type': 'call',
-                            'signal': {'candidate': event.candidate},
-                            'recipient': currentRecipient
-                        }));
-                    }
-                };
-
-                peerConnection.ontrack = function(event) {
-                    const remoteAudio = document.getElementById('remote_audio');
-                    remoteAudio.srcObject = event.streams[0];
-                };
-
-                stream.getTracks().forEach(track => {
-                    peerConnection.addTrack(track, stream);
-                });
-
-                peerConnection.createAnswer().then(answer => {
-                    peerConnection.setLocalDescription(answer);
-                    chatSocket.send(JSON.stringify({
-                        'type': 'call',
-                        'signal': {'sdp': answer},
-                        'recipient': currentRecipient
-                    }));
-                });
-
-                document.querySelector("#accept_call_button").style.display = "none";
-                document.querySelector("#end_call_button").style.display = "block";
-                document.querySelector("#mute_button").style.display = "block";
-            }).catch(error => {
-                console.error("Error accessing microphone:", error);
-                alert("Microphone access is required to accept a call. Please allow access.");
-            });
-        }
-
-        function endCall() {
-            console.log("Ending call...");
-            chatSocket.send(JSON.stringify({
-                'type': 'call_state',
-                'state': 'ended',
-                'recipient': currentRecipient
-            }));
-            if (peerConnection) {
-                peerConnection.close();
-                peerConnection = null;
-            }
-            if (localStream) {
-                localStream.getTracks().forEach(track => track.stop());
-                localStream = null;
-            }
-            document.querySelector("#end_call_button").style.display = "none";
-            document.querySelector("#mute_button").style.display = "none";
-        }
-
-        function toggleMute() {
-            console.log("Toggling mute...");
-            if (localStream) {
-                localStream.getTracks().forEach(track => {
-                    track.enabled = !track.enabled;
-                });
-            }
-        }
-
-        function handleCallSignal(signal, username) {
-            console.log("Handling call signal from", username);
-            if (!peerConnection) {
-                peerConnection = new RTCPeerConnection(config);
-                peerConnection.onicecandidate = function(event) {
-                    if (event.candidate) {
-                        chatSocket.send(JSON.stringify({
-                            'type': 'call',
-                            'signal': {'candidate': event.candidate},
-                            'recipient': username
-                        }));
-                    }
-                };
-
-                peerConnection.ontrack = function(event) {
-                    const remoteAudio = document.getElementById('remote_audio');
-                    remoteAudio.srcObject = event.streams[0];
-                };
-            }
-
-            if (signal.sdp) {
-                peerConnection.setRemoteDescription(new RTCSessionDescription(signal.sdp)).then(() => {
-                    if (signal.sdp.type === 'offer') {
-                        document.querySelector("#accept_call_button").style.display = "block";
-                    }
-                }).catch(error => console.error("Error setting remote description:", error));
-            } else if (signal.candidate) {
-                peerConnection.addIceCandidate(new RTCIceCandidate(signal.candidate)).catch(error => console.error("Error adding ICE candidate:", error));
-            }
-        }
-
-        function handleCallState(state, username) {
-            if (state === 'ended') {
-                console.log("Call ended with", username);
-                if (peerConnection) {
-                    peerConnection.close();
-                    peerConnection = null;
-                }
-                if (localStream) {
-                    localStream.getTracks().forEach(track => track.stop());
-                    localStream = null;
-                }
-                document.querySelector("#end_call_button").style.display = "none";
-                document.querySelector("#mute_button").style.display = "none";
-                document.querySelector("#accept_call_button").style.display = "none";
-            }
-        }
     </script>
 </body>
 </html>
