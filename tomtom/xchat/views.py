@@ -2,5 +2,6 @@ from django.shortcuts import render
 
 # Create your views here.
 
-def mainview(request):
-    return render(request, 'xchat/main.html')
+def main_view(request):
+    context = {}
+    return render(request, 'xchat/main.html', context=context)

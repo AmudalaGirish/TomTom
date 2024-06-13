@@ -12,7 +12,7 @@ DEBUG = True
 
 # TOM_API_KEY = env('API_KEY')
 
-ALLOWED_HOSTS = ["*", "192.168.25.242"]
+ALLOWED_HOSTS = ["*", "192.168.25.242", "192.168.31.147"]
 
 
 INSTALLED_APPS = [
@@ -38,7 +38,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # 'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
