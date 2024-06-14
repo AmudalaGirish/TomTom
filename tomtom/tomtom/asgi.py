@@ -5,7 +5,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tomtom.settings')
 
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter , URLRouter
-from chat import routing
+from xchat import routing
 
 application = ProtocolTypeRouter(
     {
