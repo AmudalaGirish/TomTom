@@ -18,9 +18,9 @@ def role_based_login(request):
             if user is not None:
                 login(request, user)
                 if user.profile.role == 'admin':
-                    return redirect('admin_dashboard')
+                    return redirect('admin')
                 else:
-                    return redirect('emp_dashboard')
+                    return redirect('emp')
     else:
         form = AuthenticationForm()
     return render(request, 'xchat/login.html', {'form': form})

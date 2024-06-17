@@ -12,6 +12,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
         else:
             self.room_group_name = f'chat_{self.user.username}'
 
+            print("channel_layer:", self.channel_layer)
+            print("room_group_name:", self.room_group_name)
+            print("channel_name:", self.channel_name)
+
             # Join the user's personal group
             await self.channel_layer.group_add(
                 self.room_group_name,
@@ -25,7 +29,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'admin_group',
                     self.channel_name
                 )
-
+                print("channel_layer inside is_admin:", self.channel_layer)
+                print("inside is_admin, channel_name:", self.channel_name)
+            
             await self.accept()
 
     async def disconnect(self, close_code):
@@ -34,7 +40,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.room_group_name,
             self.channel_name
         )
-
+        print("inside disconnect, room_group_name:", self.room_group_name)
+        print("inside disconnect, channel_name:", self.channel_name)
         # If user is admin, leave the admin group
         is_admin = await self.is_admin()
         if is_admin:
@@ -42,6 +49,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'admin_group',
                 self.channel_name
             )
+            print("inside disconnect. is_admin, channel_name:", self.channel_name)
 
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
