@@ -334,7 +334,7 @@ export default ChatWindow;
 
 //         chatSocket.onclose = () => {
 //             console.log('WebSocket connection closed');
-//             setWs(null); 
+//             setWs(null);
 //         }
 
 //         chatSocket.onmessage = (event) => {
@@ -393,10 +393,132 @@ export default ChatWindow;
 //                 <div className="chat-body">
 //                     <div className="messages">
 //                         {messages.map((msg, index) => (
+//                             <div
+//                                 key={index}
+//                                 className={`message ${msg.sender}`}
+//                                 onClick={() => role.includes('Admin') && handleUserSelect(msg.sender)}
+//                             >
+//                                 {msg.sender + ': ' + msg.text}
+//                             </div>
+//                         ))}
+//                     </div>
+//                     <div className="chat-input">
+//                         <input
+//                             type="text"
+//                             value={input}
+//                             onChange={handleInputChange}
+//                             placeholder="Type your message..."
+//                         />
+//                         <button onClick={handleSendMessage}>Send</button>
+//                     </div>
+//                 </div>
+//             )}
+//         </div>
+//     );
+// };
+
+// export default ChatWindow;
+
+
+/// version 4 : seperate window opens:
+
+// import React, { useState, useEffect } from 'react';
+// import { useSelector } from 'react-redux';
+// import configData from '../config';
+// import { IconButton } from '@mui/material';
+// import CloseIcon from '@mui/icons-material/Close';
+// import MinimizeIcon from '@mui/icons-material/Minimize';
+
+// const ChatWindow = ({ setChatOpen }) => {
+//     const [messages, setMessages] = useState([]);
+//     const [input, setInput] = useState('');
+//     const [isOpen, setIsOpen] = useState(true);
+//     const [ws, setWs] = useState(null);
+//     const [selectedUser, setSelectedUser] = useState(null);
+//     const [anotherWindow, setAnotherWindow] = useState(false);
+//     const [anotherOpen, setAnotherOpen] = useState(true);
+
+//     const account = useSelector((state) => state.account);
+//     const { role, token } = account;
+
+//     useEffect(() => {
+//         const chatSocket = new WebSocket(configData.WS_SERVER + 'ws/chat/?token=' + token);
+
+//         chatSocket.onopen = () => {
+//             console.log('WebSocket connection established');
+//             setWs(chatSocket);
+//         }
+
+//         chatSocket.onerror = () => {
+//             console.log('WebSocket connection failed with error');
+//         }
+
+//         chatSocket.onclose = () => {
+//             console.log('WebSocket connection closed');
+//             setWs(null); 
+//         }
+
+//         chatSocket.onmessage = (event) => {
+//             const data = JSON.parse(event.data);
+//             console.log('WebSocket message received:', data);
+//             setMessages(prevMessages => [...prevMessages, { text: data.message, sender: data.username }]);
+//         }
+
+//         return () => {
+//             chatSocket.close();
+//         };
+//     }, [token]);
+
+//     const handleInputChange = (e) => {
+//         setInput(e.target.value);
+//     };
+
+//     const handleSendMessage = () => {
+//         if (input.trim()) {
+//             setMessages([...messages, { text: input, sender: 'You' }]);
+//             ws.send(JSON.stringify({
+//                 'message': input,
+//                 'recipient': selectedUser || 'admin'
+//             }));
+//             setInput('');
+//         }
+//     };
+
+//     const handleChatClose = () => {
+//         setChatOpen(false);
+//         if (ws) {
+//             ws.close();
+//         }
+//         setWs(null);
+//     };
+
+//     const handleUserSelect = (username) => {
+//         setSelectedUser(username);
+//         setAnotherWindow(true);
+//         setMessages([]);
+//     };
+
+//     return (<>
+//         <div className={`chat-container ${isOpen ? 'open' : ''}`}>
+//             <div className="chat-header">
+//                 Chat with us
+//                 <div className="chat-controls">
+//                     <IconButton size="small" onClick={() => setIsOpen(!isOpen)}>
+//                         <MinimizeIcon style={{ color: 'white' }} />
+//                     </IconButton>
+//                     <IconButton size="small" onClick={() => handleChatClose()}>
+//                         <CloseIcon style={{ color: 'white' }} />
+//                     </IconButton>
+//                 </div>
+//             </div>
+//             {isOpen && (
+//                 <div className="chat-body">
+//                     <div className="messages">
+//                         {messages.map((msg, index) => (
 //                             <div 
 //                                 key={index} 
 //                                 className={`message ${msg.sender}`}
-//                                 onClick={() => role.includes('Admin') && handleUserSelect(msg.sender)}
+//                                 onClick={() => role.includes('Admin') && !selectedUser && handleUserSelect(msg.sender)}
 //                             >
 //                                 {msg.sender + ': ' + msg.text}
 //                             </div>
@@ -414,9 +536,44 @@ export default ChatWindow;
 //                 </div>
 //             )}
 //         </div>
-//     );
+//         {anotherWindow && (
+//             <div className={`window-container ${anotherWindow ? 'open' : ''}`}>
+//                 <div className="window-header">
+//                     {selectedUser}
+//                     <div className="window-controls">
+//                         <IconButton size="small" onClick={() => setAnotherOpen(!anotherOpen)}>
+//                             <MinimizeIcon style={{ color: 'white' }} />
+//                         </IconButton>
+//                         <IconButton size="small" onClick={() => setAnotherWindow(false)} >
+//                             <CloseIcon style={{ color: 'white' }} />
+//                         </IconButton>
+//                     </div>
+//                 </div>
+//                 {anotherOpen && (
+//                     <div className="window-body">
+//                         <div className="messages">
+//                             {messages.map((msg, index) => (
+//                                 <div 
+//                                     key={index} 
+//                                     className={`message ${msg.sender}`}
+//                                     onClick={() => role.includes('Admin') && !selectedUser && handleUserSelect(msg.sender)}
+//                                 >
+//                                     {msg.sender + ': ' + msg.text}
+//                                 </div>
+//                             ))}
+//                         </div>
+//                         <div className="window-input">
+//                             <input 
+//                                 type="text" 
+//                                 value={input} 
+//                                 onChange={handleInputChange} 
+//                                 placeholder="Type your message..." 
+//                             />
+//                             <button onClick={handleSendMessage}>Send</button>
+//                         </div>
+//                     </div>
+//                 )}
+//             </div>
+//         )}
+//     </>);
 // };
-
-// export default ChatWindow;
-
-

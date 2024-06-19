@@ -2,8 +2,8 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from django.contrib.auth.models import User
-from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework_simplejwt.exceptions import InvalidToken
+# from rest_framework_simplejwt.tokens import AccessToken
+# from rest_framework_simplejwt.exceptions import InvalidToken
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
