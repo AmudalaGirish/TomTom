@@ -1,8 +1,15 @@
-s = "B4A1D3"
-s1 = ""
+import base64
 
-for ch in s:
-    if ch.isalpha():
-        s1 += ch
-    else:
-        pass
+def encode_username(username):
+    return base64.urlsafe_b64encode(username.encode()).decode()
+
+def decode_username(encoded_username):
+    return base64.urlsafe_b64decode(encoded_username.encode()).decode()
+
+username = 'pawan@'
+encoded_username = encode_username(username)
+print(encoded_username)
+
+# encoded_username = "cGF3YW5AMTIz"
+# username = decode_username(encoded_username)
+# print(username)
